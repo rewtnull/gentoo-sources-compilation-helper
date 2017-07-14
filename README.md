@@ -1,13 +1,17 @@
 NAME
+
 	gch - gentoo-sources compilation helper
 
 VERSION
+
 	0.5
 
 SYNOPSIS:
+
 	gch.sh [--help|-h] [--version|-v] [--kernel|-k <version>] [arg]
 
 DESCRIPTION
+
 	If you're tired of manually (re)compiling your gentoo-sources for the
 	N:th time, or you're just lazy, this is the script for you.
 
@@ -34,10 +38,11 @@ DESCRIPTION
 	- Renames *-gentoo-x64 to *-x64-gentoo because i don't know
 
 ARGUMENTS
+
 	-h, --help			Display this help
 	-v, --version			Display version and exit
 
-	OPTIONS:
+	OPTIONS
 
 	-k, --kernel			kernel version in format:
 					linux-<version>-gentoo
@@ -45,7 +50,8 @@ ARGUMENTS
 	No arguments, or --kernel option accepted
 
 DEPENDENCIES
-	* You need to be root to run this script *
+
+	You need to be root to run this script
 
 	- Bash v4.4 or newer		app-shells/bash
 	- gentoo-sources		sys-kernel/gentoo-sources
@@ -66,6 +72,7 @@ DEPENDENCIES
 	conditions are not met.
 
 CONFIGURATION
+
 	gch.conf is to be kept in the same directory as gch.sh
 
 
@@ -121,14 +128,17 @@ CONFIGURATION
 	Default: "bzImage modules modules_install install"
 
 AUTHOR
+
 	Written by Marcus Hoffren
 
 REPORTING BUGS
+
 	Report gch.sh bugs to marcus@harikazen.com
 	Updates of gch.sh and other projects of mine can be found at
 	https://github.com/rewtnull?tab=repositories
 
 COPYRIGHT
+
 	Copyright © 2017 Marcus Hoffren. License GPLv3+:
 	GNU GPL version 3 or later - http://gnu.org/licenses/gpl.html
 
@@ -136,8 +146,10 @@ COPYRIGHT
 	There is NO WARRANTY, to the extent permitted by law.
 
 HISTORY
+
 	LEGEND: [+] Add, [-] Remove, [*] Change, [!] Bugfix
 
 	v0.5 (20170715) [+] Initial release
 TODO
-	Send a message with ideas to marcus@harikazen.com
+
+	Send ideas to marcus@harikazen.com
