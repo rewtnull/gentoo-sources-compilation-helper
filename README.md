@@ -139,7 +139,7 @@ REPORTING BUGS
 
 COPYRIGHT
 
-	Copyright Â© 2017 Marcus Hoffren. License GPLv3+:
+	Copyright © 2017 Marcus Hoffren. License GPLv3+:
 	GNU GPL version 3 or later - http://gnu.org/licenses/gpl.html
 
 	This is free software: you are free to change and redistribute it.
@@ -149,11 +149,16 @@ HISTORY
 
 	LEGEND: [+] Add, [-] Remove, [*] Change, [!] Bugfix
 
-	v0.5 (20170715)	[+] Initial release
-	v0.6 (20170715)	[!] Missed unset variable
-				[!] Accidentally unset a variable too early
-				[*] Removed unnecessary duplicate code
-				[*] Minor code cleanup
+	v0.5 (20170715) [+] Initial release
+	v0.6 (20170715) [!] Missed unset variable
+			[!] Accidentally unset a variable too early
+			[*] Removed unnecessary duplicate code
+			[*] Minor code cleanup
+	v0.7 (20170715)	[*] Moved variable to a more logical place
+			[*] Removed variable pointer and left over
+			eval from an earlier idea
+			[+] Added more comments
 
 TODO
-	Send a message with ideas to marcus@harikazen.com
+
+	Send ideas to marcus@harikazen.com

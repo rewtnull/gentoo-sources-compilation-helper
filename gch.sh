@@ -8,6 +8,8 @@
 # There is NO WARRANTY, to the extent permitted by law.
 #
 
+### <sanity_check>
+
 if [[ -e func/error.sh ]]; then
     . func/error.sh
 else
@@ -20,18 +22,14 @@ else
     error "\n\e[91m*\e[0m gkh.conf not found"
 fi
 
-if [[ $(type -p zcat) == "" ]]; then
-    error "\n\e[91m*\e[0m zcat is missing. Install \033[1mapp-arch/gzip\033[m"
-else
-    comp="zcat"
-fi
-
 [[ $(whoami) != "root" ]] && error \
     "\n\e[91m*\e[0m you must be root to run this script"
 [[ "${BASH_VERSION}" < 4.4 ]] && error \
     "\n\e[91m*\e[0m ${0##*/} requires \033[1mbash v4.4 or newer\033[m"
 [[ $(type -p perl) == "" ]] && error \
     "\n\e[91m*\e[0m perl is missing. Install \033[1mdev-lang/perl\033[m"
+[[ $(type -p zcat) == "" ]] && error \
+    "\n\e[91m*\e[0m zcat is missing. Install \033[1mapp-arch/gzip\033[m"
 [[ $(type -p uname) == "" ]] && error \
     "\n\e[91m*\e[0m uname is missing. Install \033[1msys-apps/coreutils\033[m"
 [[ $(type -p grub-mkconfig) == "" ]] && error \
@@ -39,24 +37,36 @@ fi
 [[ $(type -p find) == "" ]] && error \
     "\n\e[91m*\e[0m find is missing. Install \033[1msys-apps/findutils\033[m"
 
-. func/version.sh 2>/dev/null || error "\n\e[91m*\e[0m version.sh not found"
-. func/except.sh 2>/dev/null || error "\n\e[91m*\e[0m except.sh not found"
-. func/usage.sh 2>/dev/null || error "\n\e[91m*\e[0m usage.sh not found"
-. func/gtoe.sh 2>/dev/null || error "\n\e[91m*\e[0m gtoe.sh not found"
-. func/max.sh 2>/dev/null || error "\n\e[91m*\e[0m max.sh not found"
+### </sanity_check>
 
-scriptdir="$( cd $(dirname "${BASH_SOURCE[0]}") && pwd )"
-confcomp="gz"
-#dirs=($(ls -t1 ${kernelroot} | grep linux-))
+### <source_functions>
+
+. func/version.sh 2>/dev/null || error "\n\e[91m*\e[0m version.sh not found"
+. func/except.sh 2>/dev/null || error "\n\e[91m*\e[0m except.sh not found" # exception handler
+. func/usage.sh 2>/dev/null || error "\n\e[91m*\e[0m usage.sh not found"
+. func/gtoe.sh 2>/dev/null || error "\n\e[91m*\e[0m gtoe.sh not found" # lexicographic greater than or equal
+. func/max.sh 2>/dev/null || error "\n\e[91m*\e[0m max.sh not found" # return largest element from array
+
+### </source_functions>
+
+scriptdir="$( cd $(dirname "${BASH_SOURCE[0]}") && pwd )" # save script directory
+
+### <populate_array_with_kernel_versions>
+
 dirs1=(${kernelroot}/*); dirs1=("${dirs1[@]##*/}") # basename
 dirs2=($(max "${dirs1[@]}")) # return largest element from array
+
+### </populate_array_with_kernel_versions>
+
+### <script_arguments>
 
 case ${1} in
     --version|-v)
 	version
 	exit 0;;
     --kernel|-k)
-	trigger="1";;
+	trigger="1"
+	dirs2[0]="${2}";;
     --help|-h)
 	usage
 	exit 0;;
@@ -67,7 +77,7 @@ case ${1} in
 	exit 1;;
 esac
 
-[[ "${trigger}" == "1" ]] && dirs2[0]="${2}"
+### </script_arguments>
 
 if [[ ${dirs2[0]} =~ ^linux-$(uname -r)$ ]]; then
     echo ""
@@ -75,22 +85,28 @@ if [[ ${dirs2[0]} =~ ^linux-$(uname -r)$ ]]; then
 	[[ "${REPLY}" != "y" ]] && { echo -e "\nSee ya!\n"; exit 0; }
 fi
 
+### <kernel_version_sanity_check>
+
 re="^(linux-)[0-9]{1,2}\.[0-9]{1,2}\.[0-9]{1,2}(-r[0-9]([0-9])?)?(-gentoo)(-r[0-9]([0-9])?)?$"
 
 if [[ "${trigger}" == "1" ]] && [[ "${dirs2[0]}" =~ ${re} ]]; then
     for (( i = 0; i < ${#dirs1[@]}; i++ )); do
-	[[ "${dirs1[${i}]}" == "${dirs2[0]}" ]] && { current="${dirs2[0]}"; break; }
+	[[ "${dirs1[${i}]}" == "${dirs2[0]}" ]] && { current="${dirs2[0]}"; break; } # check if input version is valid
     done
     [[ ${current} == "" ]] && error "\n\e[91m*\e[0m ${dirs2[0]} - Version does not exist"
 elif [[ ${1} == "" ]]; then
-    current="${dirs2[0]}"
+    current="${dirs2[0]}" # if run without argument, make highest version current
 elif [[ ${dirs2[0]} == "" ]]; then
-    usage; exit 1
+    usage; exit 1 # don't leave the second argument blank
 else
     error "\n\e[91m*\e[0m ${dirs2[0]} - Illegal format. Use linux-<version>-gentoo"
 fi; unset re dirs1 trigger
 
+### </kernel_version_sanity_check>
+
 [[ ${current} == "" ]] && error "\n\e[91m*\e[0m \033[1m\033[1msys-kernel/gentoo-sources\033[m needs to be installed"
+
+### <mount_handling>
 
 if [[ $(find ${bootmount} -maxdepth 0 -empty) ]]; then
     echo ""
@@ -103,7 +119,11 @@ if [[ $(find ${bootmount} -maxdepth 0 -empty) ]]; then
 	fi
 fi; unset fstab
 
+### </mount_handling>
+
 echo -e "\n\e[92m*\e[0m Processing kernel: ${current}"
+
+### <symbolik_link_handling>
 
 [[ -L ${kernelroot}/linux ]] && { rm ${kernelroot}/linux 2>/dev/null; except "\n\e[91m*\e[0m Could not remove symbolic link"; }
 
@@ -112,12 +132,16 @@ if [[ ! -L ${kernelroot}/linux ]]; then
     { ln -s "${kernelroot}/${current}" "${kernelroot}/linux" 2>/dev/null; except "\n\e[91m*\e[0m Could not create symbolic link"; }
 fi
 
+### </symbolik_link_handling>
+
+### <config_handling>
+
 if [[ ! -f ${kernelroot}/linux/.config ]]; then
     read -rp "${kernelroot}/linux/.config not present. Reuse old .config? [y/N] "
 	if [[ "${REPLY}" == "y" ]]; then
-	    if [[ -e /proc/config.${confcomp} ]]; then
-		echo -e "\n>>> Deflating \033[1m\033[1m/proc/config.${confcomp}\033[m to \033[1m\033[1m${kernelroot}/linux/.config\033[m\n"
-		{ eval ${comp} /proc/config.${confcomp} > "${kernelroot}/linux/.config" 2>/dev/null \
+	    if [[ -e /proc/config.gz ]]; then
+		echo -e "\n>>> Deflating \033[1m\033[1m/proc/config.gz\033[m to \033[1m\033[1m${kernelroot}/linux/.config\033[m\n"
+		{ zcat /proc/config.gz > "${kernelroot}/linux/.config" 2>/dev/null \
 		    except "\n\e[91m*\e[0m Could not copy .config"; }
 	    else
 		echo -e "\n\e[91m*\e[0m The following kernel flags need to be set:"
@@ -131,14 +155,17 @@ if [[ ! -f ${kernelroot}/linux/.config ]]; then
 	fi
 elif [[ ! -s ${kernelroot}/linux/.config ]]; then
     error "\n\e[91m*\e[0m .config is empty"
-fi; unset confcomp comp
+fi
 
-cd "${kernelroot}/linux" 2>/dev/null || error "\n\e[91m*\e[0m Could not cd ${kernelroot}/linux"
+cd "${kernelroot}/linux" 2>/dev/null || error "\n\e[91m*\e[0m Could not cd ${kernelroot}/linux"; unset kernelroot
 
 if ! make ${makeopt}; then
     error "\n\e[91m*\e[0m make ${makeopt} failed"
-fi; unset makeopt kernelroot
+fi; unset makeopt
 
+### </config_handling>
+
+### <compilation_handling>
 echo ""
 read -rp "Init complete. Do you want to compile kernel now? [y/N] "
     if [[ "${REPLY}" == "y" ]]; then
@@ -148,7 +175,11 @@ read -rp "Init complete. Do you want to compile kernel now? [y/N] "
 	echo -e "\nSee Ya!\n"; exit 0
     fi; unset makearg
 
-re="$(echo "${current:6}" | perl -pe 's/(\d{1,2}\.\d{1,2}\.\d{1,2})/\1-x64/')"
+### </compilation_handling>
+
+### <move_kernel_to_boot_and_move_x64>
+
+re="$(echo "${current:6}" | perl -pe 's/(\d{1,2}\.\d{1,2}\.\d{1,2})/\1-x64/')" # include x32?
 
 if [[ "${dirs2[0]}" =~ ^${current}$ ]]; then
     { mv "${bootmount}/System.map-${current:6}" ${bootmount}/System.map-"${re}" \
@@ -165,17 +196,27 @@ else
     error "\n\e[91m*\e[0m Something went wrong.."
 fi; unset re dirs2
 
+### </move_kernel_to_boot_and_move_x64>
+
+### <grub_handling>
+
 echo ""
 { grub-mkconfig -o "${grubcfg}"; except "\n\e[91m*\e[0m grub-mkconfig failed"; }
+
+### </grub_handling>
+
+### <unmount_handling>
 
 if [[ ! $(mount | grep -o "${bootmount}") == "" ]]; then
     echo -e "\n>>> Unmounting ${bootmount}"
     umount "${bootmount}" 2>/dev/null || error "\n\e[91m*\e[0m umount ${bootmount} failed"; unset bootmount
 fi; unset grubcfg
 
+### </unmount_handling>
+
 echo -e "\e[92m*\e[0m Kernel version ${current} now installed\n"; unset current
 
-cd "${scriptdir}" 2>/dev/null || error "\n\e[91m*\e[0m Could not cd to ${scriptdir}"; unset scriptdir
+cd "${scriptdir}" 2>/dev/null || error "\n\e[91m*\e[0m Could not cd to ${scriptdir}"; unset scriptdir # return to script directory
 
 echo -e "\e[93m*\e[0m If you have VirtualBox installed, don't forget to run"
 echo -e "\e[93m*\e[0m \033[1m# emerge -1 @module-rebuild\033[m after upgrading\n"
