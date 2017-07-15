@@ -8,7 +8,7 @@ VERSION
 
 SYNOPSIS:
 
-	gch.sh [--help|-h] [--version|-v] [--kernel|-k <version>] [arg]
+	gch.sh [--help|-h] [--version|-v] [--kernel|-k <version>]
 
 DESCRIPTION
 
@@ -54,12 +54,12 @@ DEPENDENCIES
 	You need to be root to run this script
 
 	- Bash v4.4 or newer		app-shells/bash
-	- gentoo-sources		sys-kernel/gentoo-sources
-	- perl				dev-lang/perl
-	- grub				sys-boot/grub
-	- find				sys-apps/findutils
+	- gentoo-sources			sys-kernel/gentoo-sources
+	- perl					dev-lang/perl
+	- grub					sys-boot/grub
+	- find					sys-apps/findutils
 	- uname				sys-apps/coreutils
-	- zcat				app-arch/gzip
+	- zcat					app-arch/gzip
 
 	The following kernel flags are used for /proc/config.gz support,
 	and need to be set:
