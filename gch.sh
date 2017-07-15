@@ -105,7 +105,7 @@ fi; unset fstab
 
 echo -e "\n\e[92m*\e[0m Processing kernel: ${current}"
 
-[[ -L ${kernelroot}/linux ]] && { rm ${kernelroot}/linux 2>/dev/null; \ except "\n\e[91m*\e[0m Could not remove symbolic link"; }
+[[ -L ${kernelroot}/linux ]] && { rm ${kernelroot}/linux 2>/dev/null; except "\n\e[91m*\e[0m Could not remove symbolic link"; }
 
 if [[ ! -L ${kernelroot}/linux ]]; then
     echo -e ">>> Creating symbolic link \033[1m${kernelroot}/${current}\033[m as \033[1m${kernelroot}/linux\033[m\n"
