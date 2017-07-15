@@ -149,8 +149,8 @@ HISTORY
 
 	LEGEND: [+] Add, [-] Remove, [*] Change, [!] Bugfix
 
-	v0.5 (20170715) [+] Initial release
-	v0.6 (20170715) [!] Missed unset variable
+	v0.5 (20170715)	[+] Initial release
+	v0.6 (20170715)	[!] Missed unset variable
 			[!] Accidentally unset a variable too early
 			[*] Removed unnecessary duplicate code
 			[*] Minor code cleanup
