@@ -79,13 +79,14 @@ esac
 
 ### </script_arguments>
 
+
+### <kernel_version_sanity_check>
+
 if [[ ${dirs2[0]} =~ ^linux-$(uname -r)$ ]]; then
     echo ""
     read -rp "Kernel version already installed. Do you want to reinstall it? [y/N] "
 	[[ "${REPLY}" != "y" ]] && { echo -e "\nSee ya!\n"; exit 0; }
 fi
-
-### <kernel_version_sanity_check>
 
 re="^(linux-)[0-9]{1,2}\.[0-9]{1,2}\.[0-9]{1,2}(-r[0-9]([0-9])?)?(-gentoo)(-r[0-9]([0-9])?)?$"
 
@@ -166,6 +167,7 @@ fi; unset makeopt
 ### </config_handling>
 
 ### <compilation_handling>
+
 echo ""
 read -rp "Init complete. Do you want to compile kernel now? [y/N] "
     if [[ "${REPLY}" == "y" ]]; then
