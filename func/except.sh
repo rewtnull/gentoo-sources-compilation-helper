@@ -2,6 +2,6 @@
 except() {
     local pstatus=("${PIPESTATUS[@]}")
     for (( i = 0; i < ${#pstatus[@]}; i++ )); do
-	[[ ${pstatus[${i}]} -gt 0 ]] && { echo -e "${1}: return code: ${pstatus[${i}]}\n"; exit; }
+	[[ ${pstatus[${i}]} -gt 0 ]] && { echo -e "${1}: Return Code: ${pstatus[${i}]}\n"; exit; }
     done
 }

@@ -139,7 +139,7 @@ REPORTING BUGS
 
 COPYRIGHT
 
-	Copyright Â© 2017 Marcus Hoffren. License GPLv3+:
+	Copyright © 2017 Marcus Hoffren. License GPLv3+:
 	GNU GPL version 3 or later - http://gnu.org/licenses/gpl.html
 
 	This is free software: you are free to change and redistribute it.
@@ -150,6 +150,10 @@ HISTORY
 	LEGEND: [+] Add, [-] Remove, [*] Change, [!] Bugfix
 
 	v0.5 (20170715) [+] Initial release
-TODO
+	v0.6 (20170715) [!] Missed unset variable
+			[!] Accidentally unset a variable too early
+			[*] Removed unnecessary duplicate code
+			[*] Minor code cleanup
 
-	Send ideas to marcus@harikazen.com
+TODO
+	Send a message with ideas to marcus@harikazen.com

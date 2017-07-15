@@ -71,8 +71,7 @@ esac
 
 if [[ ${dirs2[0]} =~ ^linux-$(uname -r)$ ]]; then
     echo ""
-    read -rp \
-	"Kernel version already installed. do you want to reinstall it? [y/N] "
+    read -rp "Kernel version already installed. Do you want to reinstall it? [y/N] "
 	[[ "${REPLY}" != "y" ]] && { echo -e "\nSee ya!\n"; exit 0; }
 fi
 
@@ -106,23 +105,20 @@ fi; unset fstab
 
 echo -e "\n\e[92m*\e[0m Processing kernel: ${current}"
 
-[[ -L ${kernelroot}/linux ]] && { rm ${kernelroot}/linux 2>/dev/null; \
-    except "\n\e[91m*\e[0m Could not remove symbolic link"; }
+[[ -L ${kernelroot}/linux ]] && { rm ${kernelroot}/linux 2>/dev/null; \ except "\n\e[91m*\e[0m Could not remove symbolic link"; }
 
 if [[ ! -L ${kernelroot}/linux ]]; then
     echo -e ">>> Creating symbolic link \033[1m${kernelroot}/${current}\033[m as \033[1m${kernelroot}/linux\033[m\n"
-    { ln -s "${kernelroot}/${current}" "${kernelroot}/linux" 2>/dev/null; \
-	except "\n\e[91m*\e[0m Could not create symbolic link"; }
+    { ln -s "${kernelroot}/${current}" "${kernelroot}/linux" 2>/dev/null; except "\n\e[91m*\e[0m Could not create symbolic link"; }
 fi
 
 if [[ ! -f ${kernelroot}/linux/.config ]]; then
-    read -rp \
-	"${kernelroot}/linux/.config not present. Reuse old .config? [y/N] "
+    read -rp "${kernelroot}/linux/.config not present. Reuse old .config? [y/N] "
 	if [[ "${REPLY}" == "y" ]]; then
 	    if [[ -e /proc/config.${confcomp} ]]; then
 		echo -e "\n>>> Deflating \033[1m\033[1m/proc/config.${confcomp}\033[m to \033[1m\033[1m${kernelroot}/linux/.config\033[m\n"
 		{ eval ${comp} /proc/config.${confcomp} > "${kernelroot}/linux/.config" 2>/dev/null \
-		    except "\n\e[91m*\e[0m Could not copy .config. Is the \033[1mcomp\033[m setting correct?"; }
+		    except "\n\e[91m*\e[0m Could not copy .config"; }
 	    else
 		echo -e "\n\e[91m*\e[0m The following kernel flags need to be set:"
 		echo -e "\e[91m*\e[0m \033[1m\033[1mCONFIG_PROC_FS\033[m"
@@ -134,8 +130,8 @@ if [[ ! -f ${kernelroot}/linux/.config ]]; then
 	    echo -e "\n>>> Running manual kernel configuration\n"
 	fi
 elif [[ ! -s ${kernelroot}/linux/.config ]]; then
-    error "\n\e[91m*\e[0m .config is empty. Is the \033[1mcomp\033[m setting correct?"
-fi; unset confcomp
+    error "\n\e[91m*\e[0m .config is empty"
+fi; unset confcomp comp
 
 cd "${kernelroot}/linux" 2>/dev/null || error "\n\e[91m*\e[0m Could not cd ${kernelroot}/linux"
 
@@ -165,8 +161,6 @@ if [[ "${dirs2[0]}" =~ ^${current}$ ]]; then
 	{ mv "${bootmount}/initramfs-${current:6}" ${bootmount}/initramfs-"${re}" \
 	    2>/dev/null; except "\n\e[91m*\e[0m mv initramfs failed "; }
     fi
-    { cp "${kernelroot}/linux/.config" ${bootmount}/config-"${re}" \
-	2>/dev/null; except "\n\e[91m*\e[0m cp ${kernelroot}/linux/.config to ${bootmount}/config-${re} failed"; }
 else
     error "\n\e[91m*\e[0m Something went wrong.."
 fi; unset re dirs2
