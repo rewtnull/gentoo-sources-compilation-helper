@@ -127,6 +127,8 @@ CONFIGURATION
 
 	Default: "bzImage modules modules_install install"
 
+
+
 	makeopt
 
 	    Override /etc/portage/make.conf MAKEOPTS options. See MAKE(1)
@@ -146,7 +148,7 @@ REPORTING BUGS
 
 COPYRIGHT
 
-	Copyright © 2017 Marcus Hoffren. License GPLv3+:
+	Copyright Â© 2017 Marcus Hoffren. License GPLv3+:
 	GNU GPL version 3 or later - http://gnu.org/licenses/gpl.html
 
 	This is free software: you are free to change and redistribute it.
@@ -156,19 +158,19 @@ HISTORY
 
 	LEGEND: [+] Add, [-] Remove, [*] Change, [!] Bugfix
 
-	v0.5 (20170715) [+] Initial release
-	v0.6 (20170715) [!] Missed unset variable
-			[!] Accidentally unset a variable too early
-			[*] Removed unnecessary duplicate code
-			[*] Minor code cleanup
+	v0.5 (20170715)	[+] Initial release
+	v0.6 (20170715)	[!] Missed unset variable
+				[!] Accidentally unset a variable too early
+				[*] Removed unnecessary duplicate code
+				[*] Minor code cleanup
 	v0.7 (20170715)	[*] Moved variable to a more logical place
-			[-] Removed variable pointer and left over
-			    eval from an earlier idea
-			[+] Added more comments
-	v0.8 (20170716) [+] Added option for make.conf make optimization
-			    override
-			[*] Renamed some variables and a function for clarity
-			[*] Changed an unnecessary array to a variable
+				[-] Removed variable pointer and left over
+				    eval from an earlier idea
+				[+] Added more comments
+	v0.8 (20170716)	[+] Added option for make.conf make optimization
+				    override
+				[*] Renamed some variables and a function for clarity
+				[*] Changed an unnecessary array to a variable
 
 TODO
 
