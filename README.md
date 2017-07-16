@@ -4,11 +4,11 @@ NAME
 
 VERSION
 
-	0.7
+	0.8
 
 SYNOPSIS:
 
-	gch.sh [--help|-h] [--version|-v] [--kernel|-k <version>]
+	gch.sh [--help|-h] [--version|-v] [--kernel|-k <version>] [arg]
 
 DESCRIPTION
 
@@ -45,7 +45,7 @@ ARGUMENTS
 	OPTIONS
 
 	-k, --kernel			kernel version in format:
-					linux-<version>-gentoo
+					linux-<version>-gentoo[<-r<1-9>>]
 
 	No arguments, or --kernel option accepted
 
@@ -54,12 +54,12 @@ DEPENDENCIES
 	You need to be root to run this script
 
 	- Bash v4.4 or newer		app-shells/bash
-	- gentoo-sources			sys-kernel/gentoo-sources
-	- perl					dev-lang/perl
-	- grub					sys-boot/grub
-	- find					sys-apps/findutils
+	- gentoo-sources		sys-kernel/gentoo-sources
+	- perl				dev-lang/perl
+	- grub				sys-boot/grub
+	- find				sys-apps/findutils
 	- uname				sys-apps/coreutils
-	- zcat					app-arch/gzip
+	- zcat				app-arch/gzip
 
 	The following kernel flags are used for /proc/config.gz support,
 	and need to be set:
@@ -108,7 +108,7 @@ CONFIGURATION
 
 
 
-	makeopt
+	makeconf
 
 	    make kernel configutation option This could be "oldconfig",
 	    "xconfig", "menuconfig" and so on.
@@ -127,6 +127,13 @@ CONFIGURATION
 
 	Default: "bzImage modules modules_install install"
 
+	makeopt
+
+	    Override /etc/portage/make.conf MAKEOPTS options. See MAKE(1)
+	    for more information
+
+	Default: ""
+
 AUTHOR
 
 	Written by Marcus Hoffren
@@ -139,25 +146,29 @@ REPORTING BUGS
 
 COPYRIGHT
 
-	Copyright Â© 2017 Marcus Hoffren. License GPLv3+:
+	Copyright © 2017 Marcus Hoffren. License GPLv3+:
 	GNU GPL version 3 or later - http://gnu.org/licenses/gpl.html
 
 	This is free software: you are free to change and redistribute it.
 	There is NO WARRANTY, to the extent permitted by law.
 
-CHANGELOG
+HISTORY
 
 	LEGEND: [+] Add, [-] Remove, [*] Change, [!] Bugfix
 
-	v0.5 (20170715) 	[+] Initial release
-	v0.6 (20170715) 	[!] Missed unset variable
-				[!] Accidentally unset a variable too early
-				[*] Removed unnecessary duplicate code
-				[*] Minor code cleanup
+	v0.5 (20170715) [+] Initial release
+	v0.6 (20170715) [!] Missed unset variable
+			[!] Accidentally unset a variable too early
+			[*] Removed unnecessary duplicate code
+			[*] Minor code cleanup
 	v0.7 (20170715)	[*] Moved variable to a more logical place
-				[*] Removed variable pointer and left over
-				    eval from an earlier idea
-				[+] Added more comments
+			[-] Removed variable pointer and left over
+			    eval from an earlier idea
+			[+] Added more comments
+	v0.8 (20170716) [+] Added option for make.conf make optimization
+			    override
+			[*] Renamed some variables and a function for clarity
+			[*] Changed an unnecessary array to a variable
 
 TODO
 

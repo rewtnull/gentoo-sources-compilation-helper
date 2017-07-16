@@ -40,12 +40,11 @@ fi
 ### </sanity_check>
 
 ### <source_functions>
-
 . func/version.sh 2>/dev/null || error "\n\e[91m*\e[0m version.sh not found"
+. func/largest.sh 2>/dev/null || error "\n\e[91m*\e[0m largest.sh not found" # return largest element from array
 . func/except.sh 2>/dev/null || error "\n\e[91m*\e[0m except.sh not found" # exception handler
 . func/usage.sh 2>/dev/null || error "\n\e[91m*\e[0m usage.sh not found"
 . func/gtoe.sh 2>/dev/null || error "\n\e[91m*\e[0m gtoe.sh not found" # lexicographic greater than or equal
-. func/max.sh 2>/dev/null || error "\n\e[91m*\e[0m max.sh not found" # return largest element from array
 
 ### </source_functions>
 
@@ -53,8 +52,8 @@ scriptdir="$( cd $(dirname "${BASH_SOURCE[0]}") && pwd )" # save script director
 
 ### <populate_array_with_kernel_versions>
 
-dirs1=(${kernelroot}/*); dirs1=("${dirs1[@]##*/}") # basename
-dirs2=($(max "${dirs1[@]}")) # return largest element from array
+kerndirs=(${kernelroot}/*); kerndirs=("${kerndirs[@]##*/}") # basename
+kernhigh="$(largest "${kerndirs[@]}")" # return largest element from array
 
 ### </populate_array_with_kernel_versions>
 
@@ -66,7 +65,7 @@ case ${1} in
 	exit 0;;
     --kernel|-k)
 	trigger="1"
-	dirs2[0]="${2}";;
+	kernhigh="${2}";;
     --help|-h)
 	usage
 	exit 0;;
@@ -79,10 +78,9 @@ esac
 
 ### </script_arguments>
 
-
 ### <kernel_version_sanity_check>
 
-if [[ ${dirs2[0]} =~ ^linux-$(uname -r)$ ]]; then
+if [[ ${kernhigh} =~ ^linux-$(uname -r)$ ]]; then
     echo ""
     read -rp "Kernel version already installed. Do you want to reinstall it? [y/N] "
 	[[ "${REPLY}" != "y" ]] && { echo -e "\nSee ya!\n"; exit 0; }
@@ -90,18 +88,18 @@ fi
 
 re="^(linux-)[0-9]{1,2}\.[0-9]{1,2}\.[0-9]{1,2}(-r[0-9]([0-9])?)?(-gentoo)(-r[0-9]([0-9])?)?$"
 
-if [[ "${trigger}" == "1" ]] && [[ "${dirs2[0]}" =~ ${re} ]]; then
-    for (( i = 0; i < ${#dirs1[@]}; i++ )); do
-	[[ "${dirs1[${i}]}" == "${dirs2[0]}" ]] && { current="${dirs2[0]}"; break; } # check if input version is valid
+if [[ "${trigger}" == "1" ]] && [[ "${kernhigh}" =~ ${re} ]]; then
+    for (( i = 0; i < ${#kerndirs[@]}; i++ )); do
+	[[ "${kerndirs[${i}]}" == "${kernhigh}" ]] && { current="${kernhigh}"; break; } # check if input version is valid
     done
-    [[ ${current} == "" ]] && error "\n\e[91m*\e[0m ${dirs2[0]} - Version does not exist"
+    [[ ${current} == "" ]] && error "\n\e[91m*\e[0m ${kernhigh} - Version does not exist"
 elif [[ ${1} == "" ]]; then
-    current="${dirs2[0]}" # if run without argument, make highest version current
-elif [[ ${dirs2[0]} == "" ]]; then
+    current="${kernhigh}" # if run without argument, make highest version current
+elif [[ ${2} == "" ]]; then
     usage; exit 1 # don't leave the second argument blank
 else
-    error "\n\e[91m*\e[0m ${dirs2[0]} - Illegal format. Use linux-<version>-gentoo"
-fi; unset re dirs1 trigger
+    error "\n\e[91m*\e[0m ${kernhigh} - Illegal format. Use linux-<version>-gentoo[<-r<1-9>>]"
+fi; unset re kerndirs trigger
 
 ### </kernel_version_sanity_check>
 
@@ -124,7 +122,7 @@ fi; unset fstab
 
 echo -e "\n\e[92m*\e[0m Processing kernel: ${current}"
 
-### <symbolik_link_handling>
+### <symbolic_link_handling>
 
 [[ -L ${kernelroot}/linux ]] && { rm ${kernelroot}/linux 2>/dev/null; except "\n\e[91m*\e[0m Could not remove symbolic link"; }
 
@@ -133,7 +131,7 @@ if [[ ! -L ${kernelroot}/linux ]]; then
     { ln -s "${kernelroot}/${current}" "${kernelroot}/linux" 2>/dev/null; except "\n\e[91m*\e[0m Could not create symbolic link"; }
 fi
 
-### </symbolik_link_handling>
+### </symbolic_link_handling>
 
 ### <config_handling>
 
@@ -160,9 +158,9 @@ fi
 
 cd "${kernelroot}/linux" 2>/dev/null || error "\n\e[91m*\e[0m Could not cd ${kernelroot}/linux"; unset kernelroot
 
-if ! make ${makeopt}; then
-    error "\n\e[91m*\e[0m make ${makeopt} failed"
-fi; unset makeopt
+if ! make ${makeconf}; then
+    error "\n\e[91m*\e[0m make ${makeconf} failed"
+fi; unset makeconf
 
 ### </config_handling>
 
@@ -172,18 +170,18 @@ echo ""
 read -rp "Init complete. Do you want to compile kernel now? [y/N] "
     if [[ "${REPLY}" == "y" ]]; then
 	echo ""
-	{ make ${makearg}; except "\n\e[91m*\e[0m make ${makearg} failed "; }
+	{ make ${makeopt} ${makearg}; except "\n\e[91m*\e[0m make ${makeconf} ${makearg} failed "; }
     else
 	echo -e "\nSee Ya!\n"; exit 0
-    fi; unset makearg
+    fi; unset makearg makeopt
 
 ### </compilation_handling>
 
-### <move_kernel_to_boot_and_move_x64>
+### <move_kernel_to_boot_and_rename_x64>
 
-re="$(echo "${current:6}" | perl -pe 's/(\d{1,2}\.\d{1,2}\.\d{1,2})/\1-x64/')" # include x32?
+re="$(echo "${current:6}" | perl -pe 's/(\d{1,2}\.\d{1,2}\.\d{1,2})/\1-x64/')" # add x32?
 
-if [[ "${dirs2[0]}" =~ ^${current}$ ]]; then
+if [[ "${kernhigh}" =~ ^${current}$ ]]; then
     { mv "${bootmount}/System.map-${current:6}" ${bootmount}/System.map-"${re}" \
 	2>/dev/null; except "\n\e[91m*\e[0m mv System.map failed "; }
     { mv "${bootmount}/config-${current:6}" ${bootmount}/config-"${re}" \
@@ -196,9 +194,9 @@ if [[ "${dirs2[0]}" =~ ^${current}$ ]]; then
     fi
 else
     error "\n\e[91m*\e[0m Something went wrong.."
-fi; unset re dirs2
+fi; unset re kernhigh
 
-### </move_kernel_to_boot_and_move_x64>
+### </move_kernel_to_boot_and_rename_x64>
 
 ### <grub_handling>
 
@@ -220,6 +218,7 @@ echo -e "\e[92m*\e[0m Kernel version ${current} now installed\n"; unset current
 
 cd "${scriptdir}" 2>/dev/null || error "\n\e[91m*\e[0m Could not cd to ${scriptdir}"; unset scriptdir # return to script directory
 
-echo -e "\e[93m*\e[0m If you have VirtualBox installed, don't forget to run"
-echo -e "\e[93m*\e[0m \033[1m# emerge -1 @module-rebuild\033[m after upgrading\n"
+echo -e "\e[93m*\e[0m If you have any installed packages with external modules"
+echo -e "\e[93m*\e[0m such as VirtualBox or GFX card drivers, don't forget to"
+echo -e "\e[93m*\e[0m run \033[1m# emerge -1 @module-rebuild \033[mafter upgrading\n"
 exit 0
