@@ -35,7 +35,7 @@ DESCRIPTION
 	- Adds kernel to grub by running grub-mkconfig
 	- Automatically unmounts /boot, if mounted, after installation
 	- Makes a copy of /usr/src/linux/.config to /boot/config-<version>
-	- Renames *-gentoo-x64 to *-x64-gentoo because i don't know
+	- Adds *-x64* to naming because i don't know
 
 ARGUMENTS
 
