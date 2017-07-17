@@ -4,7 +4,7 @@ NAME
 
 VERSION
 
-	0.8
+	0.9
 
 SYNOPSIS:
 
@@ -53,12 +53,12 @@ DEPENDENCIES
 
 	You need to be root to run this script
 
-	- Bash v4.4 or newer	app-shells/bash
+	- Bash v4.4 or newer		app-shells/bash
 	- gentoo-sources		sys-kernel/gentoo-sources
 	- perl				dev-lang/perl
 	- grub				sys-boot/grub
 	- find				sys-apps/findutils
-	- uname			sys-apps/coreutils
+	- uname				sys-apps/coreutils
 	- zcat				app-arch/gzip
 
 	The following kernel flags are used for /proc/config.gz support,
@@ -132,9 +132,18 @@ CONFIGURATION
 	makeopt
 
 	    Override /etc/portage/make.conf MAKEOPTS options. See MAKE(1)
-	    for more information
+	    and MAKE.CONF(5) for more information
 
 	Default: ""
+
+
+
+	arch
+
+	    Adds architecture to name. i.e. vmlinuz-<version>-x64-gentoo ...
+	    Valid options are "x32" and "x64"
+
+	Default: "x64"
 
 AUTHOR
 
@@ -148,7 +157,7 @@ REPORTING BUGS
 
 COPYRIGHT
 
-	Copyright Â© 2017 Marcus Hoffren. License GPLv3+:
+	Copyright © 2017 Marcus Hoffren. License GPLv3+:
 	GNU GPL version 3 or later - http://gnu.org/licenses/gpl.html
 
 	This is free software: you are free to change and redistribute it.
@@ -160,17 +169,21 @@ HISTORY
 
 	v0.5 (20170715)	[+] Initial release
 	v0.6 (20170715)	[!] Missed unset variable
-				[!] Accidentally unset a variable too early
-				[*] Removed unnecessary duplicate code
-				[*] Minor code cleanup
+			[!] Accidentally unset a variable too early
+			[*] Removed unnecessary duplicate code
+			[*] Minor code cleanup
 	v0.7 (20170715)	[*] Moved variable to a more logical place
-				[-] Removed variable pointer and left over
-				    eval from an earlier idea
-				[+] Added more comments
+			[-] Removed variable pointer and left over
+			    eval from an earlier idea
+			[+] Added more comments
 	v0.8 (20170716)	[+] Added option for make.conf make optimization
-				    override
-				[*] Renamed some variables and a function for clarity
-				[*] Changed an unnecessary array to a variable
+			    override
+			[*] Renamed some variables and a function for clarity
+			[*] Changed an unnecessary array to a variable
+	v0.9 (20170716)	[+] Added arch setting to define architecture type
+			    in name
+			[!] Wrong var used in an error expression
+			[*] Minor code cleanup
 
 TODO
 
