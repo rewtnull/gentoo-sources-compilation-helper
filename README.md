@@ -180,7 +180,7 @@ HISTORY
 			    	    override
 				[*] Renamed some variables and a function for clarity
 				[*] Changed an unnecessary array to a variable
-	v0.9 (20170716)	[+] Added arch setting to define architecture type
+	v0.9 (20170717)	[+] Added arch setting to define architecture type
 			    	    in name
 				[!] Wrong var used in an error expression
 				[*] Minor code cleanup
