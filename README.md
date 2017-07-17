@@ -8,7 +8,7 @@ VERSION
 
 SYNOPSIS:
 
-	gch.sh [--help|-h] [--version|-v] [--kernel|-k <version>] [arg]
+	gch.sh [--help|-h] [--version|-v] [--kernel|-k <version>]
 
 DESCRIPTION
 
