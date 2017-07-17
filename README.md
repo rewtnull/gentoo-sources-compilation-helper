@@ -174,14 +174,14 @@ HISTORY
 				[*] Minor code cleanup
 	v0.7 (20170715)	[*] Moved variable to a more logical place
 				[-] Removed variable pointer and left over
-			    	eval from an earlier idea
+			    	    eval from an earlier idea
 				[+] Added more comments
 	v0.8 (20170716)	[+] Added option for make.conf make optimization
-			    	override
+			    	    override
 				[*] Renamed some variables and a function for clarity
 				[*] Changed an unnecessary array to a variable
 	v0.9 (20170716)	[+] Added arch setting to define architecture type
-			    	in name
+			    	    in name
 				[!] Wrong var used in an error expression
 				[*] Minor code cleanup
 
