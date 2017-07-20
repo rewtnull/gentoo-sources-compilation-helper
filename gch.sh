@@ -19,33 +19,35 @@ fi
 if [[ -e gch.conf ]]; then
     . gch.conf
 else
-    error "\n\e[91m*\e[0m gkh.conf not found\n"
+    error "gkh.conf not found"
 fi
 
 [[ $(whoami) != "root" ]] && error \
-    "\n\e[91m*\e[0m you must be root to run this script\n"
+    "You must be root to run this script"
 [[ "${BASH_VERSION}" < 4.4 ]] && error \
-    "\n\e[91m*\e[0m ${0##*/} requires \033[1mbash v4.4\033[m or newer\n"
+    "${0##*/} requires \033[1mbash v4.4\033[m or newer"
 [[ $(type -p perl) == "" ]] && error \
-    "\n\e[91m*\e[0m perl is missing. Install \033[1mdev-lang/perl\033[m\n"
+    "perl is missing. Install \033[1mdev-lang/perl\033[m"
 [[ $(type -p zcat) == "" ]] && error \
-    "\n\e[91m*\e[0m zcat is missing. Install \033[1mapp-arch/gzip\033[m\n"
+    "zcat is missing. Install \033[1mapp-arch/gzip\033[m"
 [[ $(type -p uname) == "" ]] && error \
-    "\n\e[91m*\e[0m uname is missing. Install \033[1msys-apps/coreutils\033[m\n"
+    "uname is missing. Install \033[1msys-apps/coreutils\033[m"
+[[ $(type -p getopt) == "" ]] && error \
+    "getopt is missing. Install \033[1msys-apps/util-linux\033[m"
 [[ $(type -p grub-mkconfig) == "" ]] && error \
-    "\n\e[91m*\e[0m grub-mkconfig is missing. Install \033[1msys-boot/grub\033[m\n"
+    "grub-mkconfig is missing. Install \033[1msys-boot/grub\033[m"
 [[ $(type -p find) == "" ]] && error \
-    "\n\e[91m*\e[0m find is missing. Install \033[1msys-apps/findutils\033[m\n"
+    "find is missing. Install \033[1msys-apps/findutils\033[m"
 
 ### </sanity_check>
 
 ### <source_functions>
 
-. func/version.sh 2>/dev/null || error "\n\e[91m*\e[0m version.sh not found\n"
-. func/largest.sh 2>/dev/null || error "\n\e[91m*\e[0m largest.sh not found\n" # return largest element from array
-. func/except.sh 2>/dev/null || error "\n\e[91m*\e[0m except.sh not found\n" # exception handler
-. func/usage.sh 2>/dev/null || error "\n\e[91m*\e[0m usage.sh not found\n"
-. func/gtoe.sh 2>/dev/null || error "\n\e[91m*\e[0m gtoe.sh not found\n" # lexicographic greater than or equal
+. func/version.sh 2>/dev/null || error "version.sh not found"
+. func/largest.sh 2>/dev/null || error "largest.sh not found" # return largest element from array
+. func/except.sh 2>/dev/null || error "except.sh not found" # exception handler
+. func/usage.sh 2>/dev/null || error "usage.sh not found"
+. func/gtoe.sh 2>/dev/null || error "gtoe.sh not found" # lexicographic greater than or equal
 
 ### </source_functions>
 
@@ -60,22 +62,35 @@ kernhigh="$(largest "${kerndirs[@]}")" # return largest element from array
 
 ### <script_arguments>
 
-case ${1} in
-    --version|-v)
-	version
-	exit 0;;
-    --kernel|-k)
-	trigger="1"
-	kernhigh="${2}";;
-    --help|-h)
-	usage
-	exit 0;;
-    "")
-	;;
-    *)
-	usage
-	exit 1;;
-esac
+{ OPTS=$(getopt -ngch.sh -a -o "vk:yh" -l "version,kernel:,yestoall,help" -- "${@}"); except "getopt error in argument"; }
+
+eval set -- "${OPTS}" # evaluating to avoid white space separated expansion
+
+while true; do
+    case ${1} in
+	--version|-v)
+	    version
+	    exit 0;;
+	--kernel|-k)
+	    kernhigh="${2}"
+	    trigger="1"
+	    shift 2;;
+	--yestoall|-y)
+	    yestoall="1"
+	    shift;;
+	--help|-h)
+	    usage
+	    exit 0;;
+	"")
+	    ;;
+	--)
+	    shift
+	    break;;
+	*)
+	    usage
+	    exit 1;;
+    esac
+done
 
 ### </script_arguments>
 
@@ -83,40 +98,57 @@ esac
 
 if [[ ${kernhigh} =~ ^linux-$(uname -r)$ ]]; then
     echo ""
-    read -rp "Kernel version already installed. Do you want to reinstall it? [y/N] "
-	[[ "${REPLY}" != "y" ]] && { echo -e "\nSee ya!\n"; exit 0; }
+    if [[ ${yestoall} == "1" ]]; then
+	REPLY="y"
+    else
+	read -rp "Kernel ${kernhigh} currently in use. Do you want to reinstall it? [y/N] "
+    fi
+
+    [[ "${REPLY}" != "y" ]] && { echo -e "\nSee ya!\n"; exit 0; }
 fi
 
 re="^(linux-)[0-9]{1,2}\.[0-9]{1,2}\.[0-9]{1,2}(-r[0-9]([0-9])?)?(-gentoo)(-r[0-9]([0-9])?)?$"
 
-if [[ "${trigger}" == "1" ]] && [[ "${kernhigh}" =~ ${re} ]]; then
-    for (( i = 0; i < ${#kerndirs[@]}; i++ )); do
-	[[ "${kerndirs[${i}]}" == "${kernhigh}" ]] && { current="${kernhigh}"; break; } # check if input version is valid
-    done
-    [[ ${current} == "" ]] && error "\n\e[91m*\e[0m ${kernhigh} - Version does not exist\n"
-elif [[ ${1} == "" ]]; then
-    current="${kernhigh}" # if run without argument, make highest version current
-elif [[ ${2} == "" ]]; then
-    usage; exit 1 # don't leave the second argument blank
+if [[ "${kernhigh}" =~ ${re} ]]; then
+    echo "yes"
 else
-    error "\n\e[91m*\e[0m ${kernhigh} - Illegal format. Use linux-<version>-gentoo[<-r<1-9>>]\n"
+    error "${kernhigh} - Illegal format. Use linux-<version>-gentoo[<-r<1-9>>]"
+    echo "no"
+fi
+
+if [[ "${trigger}" == "1" ]]; then
+    if [[ "${kernhigh}" =~ ${re} ]]; then
+	for (( i = 0; i < ${#kerndirs[@]}; i++ )); do
+	    [[ "${kerndirs[${i}]}" == "${kernhigh}" ]] && { current="${kernhigh}"; break; } # check if input version is valid
+	done
+	[[ ${current} == "" ]] && error "${kernhigh} - Version does not exist"
+    elif [[ ${1} == "" ]]; then
+	current="${kernhigh}" # if run without argument, make highest version current
+    else
+	error "${kernhigh} - Illegal format. Use linux-<version>-gentoo[<-r<1-9>>]"
+    fi
 fi; unset re kerndirs trigger
 
 ### </kernel_version_sanity_check>
 
-[[ ${current} == "" ]] && error "\n\e[91m*\e[0m \033[1msys-kernel/gentoo-sources\033[m needs to be installed\n"
+[[ ${current} == "" ]] && error "sys-kernel/gentoo-sources\033[m needs to be installed"
 
 ### <mount_handling>
 
 if [[ $(find ${bootmount} -maxdepth 0 -empty) ]]; then
     echo ""
-    read -rp "${bootmount} is empty. Do you want to try to mount it? [y/N] "
-	if [[ "${REPLY}" == "y" ]]; then
-	    [[ $(grep -o ${bootmount} ${fstab}) == "" ]] && error "\n\e[91m*\e[0m ${bootmount} missing from ${fstab}\n"
-	    mount "${bootmount}" 2>/dev/null || error "\n\e[91m*\e[0m Could not mount ${bootmount}\n"
-	else
-	    error "\n\e[91m*\e[0m ${bootmount} is empty\n"
-	fi
+    if [[ ${yestoall} == "1" ]]; then
+	REPLY="y"
+    else
+	read -rp "${bootmount} is empty. Do you want to try to mount it? [y/N] "
+    fi
+
+    if [[ "${REPLY}" == "y" ]]; then
+	[[ $(grep -o ${bootmount} ${fstab}) == "" ]] && error "${bootmount} missing from ${fstab}"
+	mount "${bootmount}" 2>/dev/null || error "Could not mount ${bootmount}"
+    else
+	error "${bootmount} is empty"
+    fi
 fi; unset fstab
 
 ### </mount_handling>
@@ -125,11 +157,12 @@ echo -e "\n\e[92m*\e[0m Processing kernel: \033[1m${current}\033[m"
 
 ### <symbolic_link_handling>
 
-[[ -L ${kernelroot}/linux ]] && { rm ${kernelroot}/linux 2>/dev/null; except "\n\e[91m*\e[0m Could not remove symbolic link\n"; }
+[[ -L ${kernelroot}/linux ]] && { rm ${kernelroot}/linux 2>/dev/null; \
+    except "Could not remove symbolic link ${kernelroot}/linux"; }
 
 if [[ ! -L ${kernelroot}/linux ]]; then
     echo -e ">>> Creating symbolic link \033[1m${kernelroot}/${current}\033[m as \033[1m${kernelroot}/linux\033[m\n"
-    { ln -s "${kernelroot}/${current}" "${kernelroot}/linux" 2>/dev/null; except "\n\e[91m*\e[0m Could not create symbolic link\n"; }
+    { ln -s "${kernelroot}/${current}" "${kernelroot}/linux" 2>/dev/null; except "Could not create symbolic link"; }
 fi
 
 ### </symbolic_link_handling>
@@ -137,12 +170,17 @@ fi
 ### <config_handling>
 
 if [[ ! -f ${kernelroot}/linux/.config ]]; then
-    read -rp "${kernelroot}/linux/.config not present. Reuse old .config? [y/N] "
+	if [[ ${yestoall} == "1" ]]; then
+	    REPLY="y"
+	else
+	    read -rp "${kernelroot}/linux/.config not present. Reuse old .config from /proc/config.gz? [y/N] "
+	fi
+
 	if [[ "${REPLY}" == "y" ]]; then
 	    if [[ -e /proc/config.gz ]]; then
 		echo -e "\n>>> Deflating \033[1m/proc/config.gz\033[m to \033[1m${kernelroot}/linux/.config\033[m\n"
 		{ zcat /proc/config.gz > "${kernelroot}/linux/.config" 2>/dev/null \
-		    except "\n\e[91m*\e[0m Could not copy .config\n"; }
+		    except "Could not deflate /proc/config.gz to ${kernelroot}/linux/.config"; }
 	    else
 		echo -e "\n\e[91m*\e[0m The following kernel flags need to be set:"
 		echo -e "\e[91m*\e[0m \033[1m\033[1mCONFIG_PROC_FS\033[m"
@@ -154,25 +192,30 @@ if [[ ! -f ${kernelroot}/linux/.config ]]; then
 	    echo -e "\n>>> Running manual kernel configuration\n"
 	fi
 elif [[ ! -s ${kernelroot}/linux/.config ]]; then
-    error "\n\e[91m*\e[0m .config is empty\n"
+    error ".config is empty"
 fi
 
-cd "${kernelroot}/linux" 2>/dev/null || error "\n\e[91m*\e[0m Could not cd ${kernelroot}/linux\n"; unset kernelroot
+cd "${kernelroot}/linux" 2>/dev/null || error "Could not cd ${kernelroot}/linux"; unset kernelroot
 
-{ make ${makeconf}; except "\n\e[91m*\e[0m make ${makeconf} failed\n"; }; unset makeconf
+{ make ${makeconf}; except "make ${makeconf} failed"; }; unset makeconf
 
 ### </config_handling>
 
 ### <compilation_handling>
 
 echo ""
-read -rp "Init complete. Do you want to compile kernel now? [y/N] "
-    if [[ "${REPLY}" == "y" ]]; then
-	echo ""
-	{ make ${makeopt} ${makearg}; except "\n\e[91m*\e[0m make ${makeopt} ${makearg} failed\n"; }
-    else
-	echo -e "\nSee Ya!\n"; exit 0
-    fi; unset makeopt makearg
+if [[ ${yestoall} == "1" ]]; then
+    REPLY="y"
+else
+    read -rp "Init complete. Do you want to compile kernel now? [y/N] "
+fi
+
+if [[ "${REPLY}" == "y" ]]; then
+    echo ""
+    { make ${makeopt} ${makearg}; except "make ${makeopt} ${makearg} failed"; }
+else
+    echo -e "\nSee Ya!\n"; exit 0
+fi; unset makeopt makearg yestoall
 
 ### </compilation_handling>
 
@@ -184,34 +227,34 @@ case ${arch} in
     x32)
 	re="$(echo "${current:6}" | perl -pe 's/(\d{1,2}\.\d{1,2}\.\d{1,2})/\1-x32/')";;
     *)
-	error "\n\e[91m*\e[0m \${arch}: ${arch} - Valid architectures are \033[1mx32\033[m and \033[1mx64\033[m\n";;
+	error "\${arch}: ${arch} - Valid architectures are \033[1mx32\033[m and \033[1mx64\033[m";;
 esac
 
 ### </naming_with_architecture>
 
-### <move_kernel_to_boot_and_rename_x64>
+### <move_kernel_to_boot_and_rename_arch>
 
 if [[ "${kernhigh}" =~ ^${current}$ ]]; then
     { mv "${bootmount}/System.map-${current:6}" ${bootmount}/System.map-"${re}" \
-	2>/dev/null; except "\n\e[91m*\e[0m mv System.map failed\n"; }
+	2>/dev/null; except "mv System.map failed"; }
     { mv "${bootmount}/config-${current:6}" ${bootmount}/config-"${re}" \
-	2>/dev/null; except "\n\e[91m*\e[0m mv config failed\n"; }
+	2>/dev/null; except "mv config failed"; }
     { mv "${bootmount}/vmlinuz-${current:6}" ${bootmount}/vmlinuz-"${re}" \
-	2>/dev/null; except "\n\e[91m*\e[0m mv vmlinuz failed\n"; }
+	2>/dev/null; except "mv vmlinuz failed"; }
     if [[ -f "${bootmount}/initramfs-${current}" ]]; then
 	{ mv "${bootmount}/initramfs-${current:6}" ${bootmount}/initramfs-"${re}" \
-	    2>/dev/null; except "\n\e[91m*\e[0m mv initramfs failed\n"; }
+	    2>/dev/null; except "mv initramfs failed"; }
     fi
 else
-    error "\n\e[91m*\e[0m Something went wrong..\n"
+    error "Something went wrong.."
 fi; unset re kernhigh
 
-### </move_kernel_to_boot_and_rename_x64>
+### </move_kernel_to_boot_and_rename_arch>
 
 ### <grub_handling>
 
 echo ""
-{ grub-mkconfig -o "${grubcfg}"; except "\n\e[91m*\e[0m grub-mkconfig failed\n"; }
+{ grub-mkconfig -o "${grubcfg}"; except "grub-mkconfig failed"; }
 
 ### </grub_handling>
 
@@ -219,14 +262,14 @@ echo ""
 
 if [[ ! $(mount | grep -o "${bootmount}") == "" ]]; then
     echo -e "\n>>> Unmounting ${bootmount}"
-    umount "${bootmount}" 2>/dev/null || error "\n\e[91m*\e[0m umount ${bootmount} failed"
+    umount "${bootmount}" 2>/dev/null || error "umount ${bootmount} failed"
 fi; unset grubcfg bootmount
 
 ### </unmount_handling>
 
-echo -e "\e[92m*\e[0m Kernel version \033[1m${current}\033[m now installed\n"; unset current
+echo -e "Kernel version \033[1m${current}\033[m now installed"; unset current
 
-cd "${scriptdir}" 2>/dev/null || error "\n\e[91m*\e[0m Could not cd to ${scriptdir}"; unset scriptdir # return to script directory
+cd "${scriptdir}" 2>/dev/null || error "Could not cd to ${scriptdir}"; unset scriptdir # return to script directory
 
 echo -e "\e[93m*\e[0m If you have any installed packages with external modules"
 echo -e "\e[93m*\e[0m such as VirtualBox or GFX card drivers, don't forget to"
