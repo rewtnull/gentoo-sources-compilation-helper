@@ -109,17 +109,17 @@ fi
 
 re="^(linux-)[0-9]{1,2}\.[0-9]{1,2}\.[0-9]{1,2}(-r[0-9]([0-9])?)?(-gentoo)(-r[0-9]([0-9])?)?$"
 
-if [[ "${trigger}" == "1" ]]; then
-    if [[ "${kernhigh}" =~ ${re} ]]; then
+if [[ "${kernhigh}" =~ ${re} ]]; then
+    if [[ "${trigger}" == "1" ]]; then
 	for (( i = 0; i < ${#kerndirs[@]}; i++ )); do
 	    [[ "${kerndirs[${i}]}" == "${kernhigh}" ]] && { current="${kernhigh}"; break; } # check if input version is valid
 	done
 	[[ ${current} == "" ]] && error "${kernhigh} - Version does not exist"
     elif [[ ${1} == "" ]]; then
 	current="${kernhigh}" # if run without argument, make highest version current
-    else
-	error "${kernhigh} - Illegal format. Use linux-<version>-gentoo[<-r<1-9>>]"
     fi
+else
+    error "${kernhigh} - Illegal format. Use linux-<version>-gentoo[<-r<1-9>>]"
 fi; unset re kerndirs trigger
 
 ### </kernel_version_sanity_check>
@@ -268,3 +268,4 @@ echo -e "\e[93m*\e[0m If you have any installed packages with external modules"
 echo -e "\e[93m*\e[0m such as VirtualBox or GFX card drivers, don't forget to"
 echo -e "\e[93m*\e[0m run \033[1m# emerge -1 @module-rebuild\033[m after upgrading\n"
 exit 0
+
