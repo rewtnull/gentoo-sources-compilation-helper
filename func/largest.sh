@@ -9,4 +9,4 @@ largest() {
 	largest_element="${array[0]}"
     fi
     echo "${largest_element}"
-}
+}; unset largest_element
