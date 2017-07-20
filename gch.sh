@@ -109,13 +109,6 @@ fi
 
 re="^(linux-)[0-9]{1,2}\.[0-9]{1,2}\.[0-9]{1,2}(-r[0-9]([0-9])?)?(-gentoo)(-r[0-9]([0-9])?)?$"
 
-if [[ "${kernhigh}" =~ ${re} ]]; then
-    echo "yes"
-else
-    error "${kernhigh} - Illegal format. Use linux-<version>-gentoo[<-r<1-9>>]"
-    echo "no"
-fi
-
 if [[ "${trigger}" == "1" ]]; then
     if [[ "${kernhigh}" =~ ${re} ]]; then
 	for (( i = 0; i < ${#kerndirs[@]}; i++ )); do
