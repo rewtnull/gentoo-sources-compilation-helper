@@ -4,7 +4,7 @@ NAME
 
 VERSION
 
-	0.9
+	0.10
 
 SYNOPSIS:
 
@@ -43,7 +43,7 @@ ARGUMENTS
 	-v, --version			Display version and exit
 	-k, --kernel			Kernel version in format:
 					linux-<version>-gentoo[<-r<1-9>>]
-	-y, --yestoall			Automatically answer yes to all questions
+	-y, --yestoall		Automatically answer yes to all questions
 
 	No arguments, --kernel option, and optionally --yestoall option accepted
 
@@ -51,13 +51,13 @@ DEPENDENCIES
 
 	You need to be root to run this script
 
-	- Bash v4.4 or newer		app-shells/bash
+	- Bash v4.4 or newer	app-shells/bash
 	- gentoo-sources		sys-kernel/gentoo-sources
 	- getopt			sys-apps/util-linux
 	- perl				dev-lang/perl
 	- grub				sys-boot/grub
 	- find				sys-apps/findutils
-	- uname				sys-apps/coreutils
+	- uname			sys-apps/coreutils
 	- zcat				app-arch/gzip
 
 	The following kernel flags are used for /proc/config.gz support,
@@ -156,7 +156,7 @@ REPORTING BUGS
 
 COPYRIGHT
 
-	Copyright © 2017 Marcus Hoffren. License GPLv3+:
+	Copyright Â© 2017 Marcus Hoffren. License GPLv3+:
 	GNU GPL version 3 or later - http://gnu.org/licenses/gpl.html
 
 	This is free software: you are free to change and redistribute it.
@@ -166,21 +166,21 @@ HISTORY
 
 	LEGEND: [+] Add, [-] Remove, [*] Change, [!] Bugfix
 
-	v0.5 (20170715)		[+] Initial release
-	v0.6 (20170715)		[!] Missed unset variable
+	v0.5 (20170715)	[+] Initial release
+	v0.6 (20170715)	[!] Missed unset variable
 				[!] Accidentally unset a variable too early
 				[*] Removed unnecessary duplicate code
 				[*] Minor code cleanup
-	v0.7 (20170715)		[*] Moved variable to a more logical place
+	v0.7 (20170715)	[*] Moved variable to a more logical place
 				[-] Removed variable pointer and left over
 				    eval from an earlier idea
 				[+] Added more comments
-	v0.8 (20170716)		[+] Added option for make.conf make optimization
+	v0.8 (20170716)	[+] Added option for make.conf make optimization
 				    override
 				[*] Renamed some variables and a function for
 				    clarity
 				[*] Changed an unnecessary array to a variable
-	v0.9 (20170717)		[+] Added arch setting to define architecture
+	v0.9 (20170717)	[+] Added arch setting to define architecture
 				    type in name
 				[!] Wrong var used in an error expression
 				[*] Minor code cleanup
