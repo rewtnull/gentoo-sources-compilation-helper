@@ -4,7 +4,7 @@ NAME
 
 VERSION
 
-	0.11
+	0.12
 
 SYNOPSIS:
 
@@ -24,7 +24,8 @@ DESCRIPTION
 	What this script does:
 
 	- Leads you through kernel configuration and compilation by boolean (y/n)
-	  questions
+	  questions (or optionally answers these for you because your time is too
+	  valuable to answer questions)
 	- Checks if your /boot directory is empty, and if it is, asks to mount it
 	- Automatically re-links your current (or explicit) kernel version to
 	  /usr/src/linux
@@ -35,29 +36,34 @@ DESCRIPTION
 	- Adds kernel to grub by running grub-mkconfig
 	- Automatically unmounts /boot, if mounted, after installation
 	- Makes a copy of /usr/src/linux/.config to /boot/config-<version>
+	- Copies or moves the kernel files to your boot directory
 	- Adds *-x64* to naming because i don't know
 
 ARGUMENTS
 
 	-h, --help			Display this help
 	-v, --version			Display version and exit
-	-k, --kernel			Kernel version in format:
-					linux-<version>-gentoo[<-r<1-9>>]
-	-y, --yestoall		Automatically answer yes to all questions
 
-	No arguments, --kernel option, and optionally --yestoall option accepted
+	OPTIONS
+
+	-k, --kernel <kernel>		Kernel version in format:
+					linux-<version>-gentoo[<-r<1-9>>]
+	-y, --yestoall			Automatically answer yes to all questions
+
+	No arguments, --kernel option, and/or optionally --yestoall
+	option accepted
 
 DEPENDENCIES
 
 	You need to be root to run this script
 
-	- Bash v4.4 or newer	app-shells/bash
+	- Bash v4.4 or newer		app-shells/bash
 	- gentoo-sources		sys-kernel/gentoo-sources
 	- getopt			sys-apps/util-linux
 	- perl				dev-lang/perl
 	- grub				sys-boot/grub
 	- find				sys-apps/findutils
-	- uname			sys-apps/coreutils
+	- uname				sys-apps/coreutils
 	- zcat				app-arch/gzip
 
 	The following kernel flags are used for /proc/config.gz support,
@@ -137,6 +143,15 @@ CONFIGURATION
 
 
 
+	kerninstall
+
+	    Gives the choice to copy or move kernel files to boot directory
+	    Valid options are "cp" and "mv"
+
+	Default: "mv"
+
+
+
 	arch
 
 	    Adds architecture to name. i.e. vmlinuz-<version>-x64-gentoo ...
@@ -156,31 +171,31 @@ REPORTING BUGS
 
 COPYRIGHT
 
-	Copyright Â© 2017 Marcus Hoffren. License GPLv3+:
+	Copyright © 2017 Marcus Hoffren. License GPLv3+:
 	GNU GPL version 3 or later - http://gnu.org/licenses/gpl.html
 
 	This is free software: you are free to change and redistribute it.
 	There is NO WARRANTY, to the extent permitted by law.
 
-HISTORY
+CHANGELOG
 
 	LEGEND: [+] Add, [-] Remove, [*] Change, [!] Bugfix
 
-	v0.5 (20170715)	[+] Initial release
-	v0.6 (20170715)	[!] Missed unset variable
+	v0.5 (20170715)		[+] Initial release
+	v0.6 (20170715)		[!] Missed unset variable
 				[!] Accidentally unset a variable too early
 				[*] Removed unnecessary duplicate code
 				[*] Minor code cleanup
-	v0.7 (20170715)	[*] Moved variable to a more logical place
+	v0.7 (20170715)		[*] Moved variable to a more logical place
 				[-] Removed variable pointer and left over
 				    eval from an earlier idea
 				[+] Added more comments
-	v0.8 (20170716)	[+] Added option for make.conf make optimization
+	v0.8 (20170716)		[+] Added option for make.conf make optimization
 				    override
 				[*] Renamed some variables and a function for
 				    clarity
 				[*] Changed an unnecessary array to a variable
-	v0.9 (20170717)	[+] Added arch setting to define architecture
+	v0.9 (20170717)		[+] Added arch setting to define architecture
 				    type in name
 				[!] Wrong var used in an error expression
 				[*] Minor code cleanup
@@ -193,6 +208,14 @@ HISTORY
 				    to fix them. This was one of those cases.
 				    Kernel version sanity handler should now
 				    be fixed for realsies
+	v0.12 (20170721)	[+] Added kerninstall setting to allow for
+				    either moving or copying kernel to
+				    boot directory
+				[*] Made kernel install process verbose
+				[*] Tightened argument checks
+				[*] Minor code cleanup
+				[-] Removed superflous check for non-existing
+				    symbolic link
 
 TODO
 

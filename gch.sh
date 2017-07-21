@@ -8,13 +8,18 @@
 # There is NO WARRANTY, to the extent permitted by law.
 #
 
-### <sanity_check>
+### <source_functions>
 
-if [[ -e func/error.sh ]]; then
-    . func/error.sh
-else
-    { echo -e "\n\e[91m*\e[0m error.sh not found\n"; exit 1; }
-fi
+. func/error.sh 2>/dev/null || { echo -e "\n\e[91m*\e[0m error.sh not found"; exit 1; } # error handler
+. func/except.sh 2>/dev/null || error "\n\e[91m*\e[0m except.sh not found" # exception handler
+. func/version.sh 2>/dev/null || error "\n\e[91m*\e[0m version.sh not found"
+. func/largest.sh 2>/dev/null || error "\n\e[91m*\e[0m largest.sh not found" # return largest element from array
+. func/usage.sh 2>/dev/null || error "\n\e[91m*\e[0m usage.sh not found"
+. func/gtoe.sh 2>/dev/null || error "\n\e[91m*\e[0m gtoe.sh not found" # lexicographic greater than or equal
+
+### </source_functions>
+
+### <sanity_check>
 
 if [[ -e gch.conf ]]; then
     . gch.conf
@@ -32,6 +37,8 @@ fi
     "zcat is missing. Install \033[1mapp-arch/gzip\033[m"
 [[ $(type -p uname) == "" ]] && error \
     "uname is missing. Install \033[1msys-apps/coreutils\033[m"
+[[ $(type -p mount) == "" ]] && error \
+    "mount is missing. Install \033[1msys-apps/util-linux\033[m"
 [[ $(type -p getopt) == "" ]] && error \
     "getopt is missing. Install \033[1msys-apps/util-linux\033[m"
 [[ $(type -p grub-mkconfig) == "" ]] && error \
@@ -41,17 +48,7 @@ fi
 
 ### </sanity_check>
 
-### <source_functions>
-
-. func/version.sh 2>/dev/null || error "version.sh not found"
-. func/largest.sh 2>/dev/null || error "largest.sh not found" # return largest element from array
-. func/except.sh 2>/dev/null || error "except.sh not found" # exception handler
-. func/usage.sh 2>/dev/null || error "usage.sh not found"
-. func/gtoe.sh 2>/dev/null || error "gtoe.sh not found" # lexicographic greater than or equal
-
-### </source_functions>
-
-scriptdir="$( cd $(dirname "${BASH_SOURCE[0]}") && pwd )" # save script directory
+scriptdir="$( cd $(dirname "${BASH_SOURCE[0]}") && pwd )"; except "Could not cd to script directory" # save script directory
 
 ### <populate_array_with_kernel_versions>
 
@@ -62,7 +59,7 @@ kernhigh="$(largest "${kerndirs[@]}")" # return largest element from array
 
 ### <script_arguments>
 
-{ OPTS=$(getopt -ngch.sh -a -o "vk:yh" -l "version,kernel:,yestoall,help" -- "${@}"); except "getopt error in argument"; }
+{ OPTS=$(getopt -ngch.sh -a -o "vk:yh" -l "version,kernel:,yestoall,help" -- "${@}"); except "getopt: Error in argument"; }
 
 eval set -- "${OPTS}" # evaluating to avoid white space separated expansion
 
@@ -72,8 +69,8 @@ while true; do
 	    version
 	    exit 0;;
 	--kernel|-k)
-	    kernhigh="${2}"
 	    trigger="1"
+	    kernhigh="${2}" # make input argument highest version
 	    shift 2;;
 	--yestoall|-y)
 	    yestoall="1"
@@ -81,8 +78,6 @@ while true; do
 	--help|-h)
 	    usage
 	    exit 0;;
-	"")
-	    ;;
 	--)
 	    shift
 	    break;;
@@ -96,39 +91,42 @@ done
 
 ### <kernel_version_sanity_check>
 
-if [[ ${kernhigh} =~ ^linux-$(uname -r)$ ]]; then
-    echo ""
-    if [[ ${yestoall} == "1" ]]; then
-	REPLY="y"
-    else
-	read -rp "Kernel ${kernhigh} currently in use. Do you want to reinstall it? [y/N] "
-    fi
-
-    [[ "${REPLY}" != "y" ]] && { echo -e "\nSee ya!\n"; exit 0; }
-fi
-
 re="^(linux-)[0-9]{1,2}\.[0-9]{1,2}\.[0-9]{1,2}(-r[0-9]([0-9])?)?(-gentoo)(-r[0-9]([0-9])?)?$"
 
-if [[ "${kernhigh}" =~ ${re} ]]; then
-    if [[ "${trigger}" == "1" ]]; then
+if [[ "${kernhigh}" =~ ${re} ]]; then # check if input format is valid
+    if [[ "${trigger}" == "1" ]]; then # --kernel option set
 	for (( i = 0; i < ${#kerndirs[@]}; i++ )); do
-	    [[ "${kerndirs[${i}]}" == "${kernhigh}" ]] && { current="${kernhigh}"; break; } # check if input version is valid
+	    [[ "${kerndirs[${i}]}" == "${kernhigh}" ]] && { current="${kernhigh}"; break; } # check if version exists
 	done
-	[[ ${current} == "" ]] && error "${kernhigh} - Version does not exist"
     elif [[ ${1} == "" ]]; then
 	current="${kernhigh}" # if run without argument, make highest version current
+    else
+	error "${1} - Invalid argument"
     fi
+    [[ ${current} == "" ]] && error "${kernhigh} - Version does not exist. Is it installed under ${kernelroot}?"
 else
     error "${kernhigh} - Illegal format. Use linux-<version>-gentoo[<-r<1-9>>]"
 fi; unset re kerndirs trigger
 
 ### </kernel_version_sanity_check>
 
-[[ ${current} == "" ]] && error "sys-kernel/gentoo-sources\033[m needs to be installed"
+### <kernel_reinstall_check>
+
+if [[ ${current} =~ ^linux-$(uname -r)$ ]]; then
+    echo ""
+    if [[ ${yestoall} == "1" ]]; then
+	REPLY="y"
+    else
+	read -rp "Kernel ${current} currently in use. Do you want to reinstall it? [y/N] "
+    fi
+    [[ "${REPLY}" != "y" ]] && { echo -e "\nSee ya!\n"; exit 0; }
+fi
+
+### </kernel_reinstall_check>
 
 ### <mount_handling>
 
-if [[ $(find ${bootmount} -maxdepth 0 -empty) ]]; then
+if [[ $(find ${bootmount} -maxdepth 0 -empty) ]]; then # check if directory is empty
     echo ""
     if [[ ${yestoall} == "1" ]]; then
 	REPLY="y"
@@ -138,7 +136,7 @@ if [[ $(find ${bootmount} -maxdepth 0 -empty) ]]; then
 
     if [[ "${REPLY}" == "y" ]]; then
 	[[ $(grep -o ${bootmount} ${fstab}) == "" ]] && error "${bootmount} missing from ${fstab}"
-	mount "${bootmount}" 2>/dev/null || error "Could not mount ${bootmount}"
+	mount "${bootmount}" 2>/dev/null; except "Could not mount ${bootmount}"
     else
 	error "${bootmount} is empty"
     fi
@@ -150,13 +148,10 @@ echo -e "\n\e[92m*\e[0m Processing kernel: \033[1m${current}\033[m"
 
 ### <symbolic_link_handling>
 
-[[ -L ${kernelroot}/linux ]] && { rm ${kernelroot}/linux 2>/dev/null; \
-    except "Could not remove symbolic link ${kernelroot}/linux"; }
+[[ -L ${kernelroot}/linux ]] && { rm ${kernelroot}/linux 2>/dev/null; except "Could not remove symbolic link ${kernelroot}/linux"; }
 
-if [[ ! -L ${kernelroot}/linux ]]; then
-    echo -e ">>> Creating symbolic link \033[1m${kernelroot}/${current}\033[m as \033[1m${kernelroot}/linux\033[m\n"
-    { ln -s "${kernelroot}/${current}" "${kernelroot}/linux" 2>/dev/null; except "Could not create symbolic link"; }
-fi
+echo -e ">>> Creating symbolic link \033[1m${kernelroot}/${current}\033[m as \033[1m${kernelroot}/linux\033[m\n"
+{ ln -s "${kernelroot}/${current}" "${kernelroot}/linux" 2>/dev/null;  except "Could not create symbolic link"; }
 
 ### </symbolic_link_handling>
 
@@ -172,7 +167,7 @@ if [[ ! -f ${kernelroot}/linux/.config ]]; then
 	if [[ "${REPLY}" == "y" ]]; then
 	    if [[ -e /proc/config.gz ]]; then
 		echo -e "\n>>> Deflating \033[1m/proc/config.gz\033[m to \033[1m${kernelroot}/linux/.config\033[m\n"
-		{ zcat /proc/config.gz > "${kernelroot}/linux/.config" 2>/dev/null \
+		{ zcat /proc/config.gz > "${kernelroot}/linux/.config" 2>/dev/null; \
 		    except "Could not deflate /proc/config.gz to ${kernelroot}/linux/.config"; }
 	    else
 		echo -e "\n\e[91m*\e[0m The following kernel flags need to be set:"
@@ -227,20 +222,33 @@ esac
 
 ### <move_kernel_to_boot_and_rename_arch>
 
+case ${kerninstall} in
+    cp)
+	copy="copy";;
+    mv)
+	copy="mov";;
+    *)
+	error "\${kerninstall}: ${kerninstall} - Valid arguments are \033[1mcp\033[m and \033[1mmv\033[m";;
+esac
+
 if [[ "${kernhigh}" =~ ^${current}$ ]]; then
-    { mv "${bootmount}/System.map-${current:6}" ${bootmount}/System.map-"${re}" \
-	2>/dev/null; except "mv System.map failed"; }
-    { mv "${bootmount}/config-${current:6}" ${bootmount}/config-"${re}" \
-	2>/dev/null; except "mv config failed"; }
-    { mv "${bootmount}/vmlinuz-${current:6}" ${bootmount}/vmlinuz-"${re}" \
-	2>/dev/null; except "mv vmlinuz failed"; }
-    if [[ -f "${bootmount}/initramfs-${current}" ]]; then
-	{ mv "${bootmount}/initramfs-${current:6}" ${bootmount}/initramfs-"${re}" \
-	    2>/dev/null; except "mv initramfs failed"; }
-    fi
+	echo -e "\n>>> ${copy}ing \033[1m${bootmount}/System.map-${current:6}\033[m to \033[1m${bootmount}/System.map-${re}\033[m"
+	{ ${kerninstall} "${bootmount}/System.map-${current:6}" ${bootmount}/System.map-"${re}" \
+	    2>/dev/null; except "${copy}ing System.map failed"; }
+	echo -e ">>> ${copy}ing \033[1m${bootmount}/config-${current:6}\033[m to \033[1m${bootmount}/config-${re}\033[m"
+	{ ${kerninstall} "${bootmount}/config-${current:6}" ${bootmount}/config-"${re}" \
+	    2>/dev/null; except "${copy}ing config failed"; }
+	echo -e ">>> ${copy}ing \033[1m${bootmount}/vmlinuz-${current:6}\033[m to \033[1m${bootmount}/vmlinuz-${re}\033[m"
+	{ ${kerninstall} "${bootmount}/vmlinuz-${current:6}" ${bootmount}/vmlinuz-"${re}" \
+	    2>/dev/null; except "${copy}ing vmlinuz failed"; }
+	if [[ -f "${bootmount}/initramfs-${current}" ]]; then
+	    echo -e ">>> ${copy}ing \033[1m${bootmount}/initramfs-${current:6}\033[m to \033[1m${bootmount}/initramfs-${re}\033[m"
+	    { ${kerninstall} "${bootmount}/initramfs-${current:6}" ${bootmount}/initramfs-"${re}" \
+		2>/dev/null; except "${copy}ing initramfs failed"; }
+	fi
 else
     error "Something went wrong.."
-fi; unset re kernhigh
+fi; unset re kernhigh kerninstall copy
 
 ### </move_kernel_to_boot_and_rename_arch>
 
@@ -255,17 +263,16 @@ echo ""
 
 if [[ ! $(mount | grep -o "${bootmount}") == "" ]]; then
     echo -e "\n>>> Unmounting ${bootmount}"
-    umount "${bootmount}" 2>/dev/null || error "umount ${bootmount} failed"
+    umount "${bootmount}" 2>/dev/null; except "umount ${bootmount} failed"
 fi; unset grubcfg bootmount
 
 ### </unmount_handling>
 
-echo -e "Kernel version \033[1m${current}\033[m now installed"; unset current
+echo -e "Kernel version \033[1m${current}\033[m is now installed"; unset current
 
 cd "${scriptdir}" 2>/dev/null || error "Could not cd to ${scriptdir}"; unset scriptdir # return to script directory
 
-echo -e "\e[93m*\e[0m If you have any installed packages with external modules"
+echo -e "\n\e[93m*\e[0m If you have any installed packages with external modules"
 echo -e "\e[93m*\e[0m such as VirtualBox or GFX card drivers, don't forget to"
 echo -e "\e[93m*\e[0m run \033[1m# emerge -1 @module-rebuild\033[m after upgrading\n"
 exit 0
-
