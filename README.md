@@ -83,7 +83,7 @@ CONFIGURATION
 
 	bootmount
 
-	    Default location of kernel binaries
+	    Default location to install kernel binaries
 
 	Default: "/boot"
 
