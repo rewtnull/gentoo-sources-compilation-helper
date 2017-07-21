@@ -41,8 +41,8 @@ DESCRIPTION
 
 ARGUMENTS
 
-	-h, --help			Display this help
-	-v, --version			Display version and exit
+	-h, --help				Display this help
+	-v, --version				Display version and exit
 
 	OPTIONS
 
