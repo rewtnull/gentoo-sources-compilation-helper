@@ -43,13 +43,13 @@ DESCRIPTION
 
 ARGUMENTS
 
-	-h, --help			Display this help
-	-v, --version			Display version and exit
+	-h, --help				Display this help
+	-v, --version				Display version and exit
 
 	OPTIONS
 
 	-k, --kernel <kernel>		Kernel version in format:
-					linux-<version>-gentoo[<-r<1-9>>]
+						linux-<version>-gentoo[<-r<1-9>>]
 	-i, --initramfs			Generate initramfs
 	-y, --yestoall			Automatically answer yes to all questions
 
@@ -60,13 +60,13 @@ DEPENDENCIES
 
 	You need to be root to run this script
 
-	- Bash v4.4 or newer		app-shells/bash
+	- Bash v4.4 or newer	app-shells/bash
 	- gentoo-sources		sys-kernel/gentoo-sources
 	- getopt			sys-apps/util-linux
 	- perl				dev-lang/perl
 	- grub				sys-boot/grub
 	- find				sys-apps/findutils
-	- uname				sys-apps/coreutils
+	- uname			sys-apps/coreutils
 	- zcat				app-arch/gzip
 
 	Only needed for initramfs support:
@@ -201,7 +201,7 @@ REPORTING BUGS
 
 COPYRIGHT
 
-	Copyright © 2017 Marcus Hoffren. License GPLv3+:
+	Copyright Â© 2017 Marcus Hoffren. License GPLv3+:
 	GNU GPL version 3 or later - http://gnu.org/licenses/gpl.html
 
 	This is free software: you are free to change and redistribute it.
@@ -211,21 +211,21 @@ CHANGELOG
 
 	LEGEND: [+] Add, [-] Remove, [*] Change, [!] Bugfix
 
-	v0.5 (20170715)		[+] Initial release
-	v0.6 (20170715)		[!] Missed unset variable
+	v0.5 (20170715)	[+] Initial release
+	v0.6 (20170715)	[!] Missed unset variable
 				[!] Accidentally unset a variable too early
 				[*] Removed unnecessary duplicate code
 				[*] Minor code cleanup
-	v0.7 (20170715)		[*] Moved variable to a more logical place
+	v0.7 (20170715)	[*] Moved variable to a more logical place
 				[-] Removed variable pointer and left over
 				    eval from an earlier idea
 				[+] Added more comments
-	v0.8 (20170716)		[+] Added option for make.conf make optimization
+	v0.8 (20170716)	[+] Added option for make.conf make optimization
 				    override
 				[*] Renamed some variables and a function for
 				    clarity
 				[*] Changed an unnecessary array to a variable
-	v0.9 (20170717)		[+] Added arch setting to define architecture
+	v0.9 (20170717)	[+] Added arch setting to define architecture
 				    type in name
 				[!] Wrong var used in an error expression
 				[*] Minor code cleanup
