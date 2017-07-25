@@ -48,10 +48,10 @@ ARGUMENTS
 
 	OPTIONS
 
-	-k, --kernel <kernel>		Kernel version in format:
+	-k, --kernel <kernel>			Kernel version in format:
 						linux-<version>-gentoo[<-r<1-9>>]
 	-i, --initramfs			Generate initramfs
-	-y, --yestoall			Automatically answer yes to all questions
+	-y, --yestoall				Automatically answer yes to all questions
 
 	No arguments, --kernel option, optionally --yestoall and/or --initramfs
 	option accepted
@@ -60,13 +60,13 @@ DEPENDENCIES
 
 	You need to be root to run this script
 
-	- Bash v4.4 or newer	app-shells/bash
+	- Bash v4.4 or newer		app-shells/bash
 	- gentoo-sources		sys-kernel/gentoo-sources
 	- getopt			sys-apps/util-linux
 	- perl				dev-lang/perl
 	- grub				sys-boot/grub
 	- find				sys-apps/findutils
-	- uname			sys-apps/coreutils
+	- uname				sys-apps/coreutils
 	- zcat				app-arch/gzip
 
 	Only needed for initramfs support:
@@ -136,7 +136,7 @@ CONFIGURATION
 
 	    make kernel build options. See
 	    https://wiki.gentoo.org/wiki/Kernel/Configuration for
-	    more information. initramfs support implemented but untested.
+	    more information
 
 	Default: "bzImage modules modules_install install"
 
