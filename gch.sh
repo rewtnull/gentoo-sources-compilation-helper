@@ -10,7 +10,7 @@
 
 ### <source_functions>
 
-. func/error.sh 2>/dev/null || { echo -e "\n\e[91m*\e[0m error.sh not found"; exit 1; } # error handler
+. func/error.sh 2>/dev/null || { echo -e "\n\e[91m*\e[0m error.sh not found" 1>&2; exit 1; } # error handler
 . func/except.sh 2>/dev/null || error "\n\e[91m*\e[0m except.sh not found" # exception handler
 . func/version.sh 2>/dev/null || error "\n\e[91m*\e[0m version.sh not found"
 . func/largest.sh 2>/dev/null || error "\n\e[91m*\e[0m largest.sh not found" # return largest element from array
@@ -27,28 +27,19 @@ else
     error "gkh.conf not found"
 fi
 
-[[ $(whoami) != "root" ]] && error \
-    "You must be root to run this script"
-[[ "${BASH_VERSION}" < 4.4 ]] && error \
-    "${0##*/} requires \033[1mbash v4.4\033[m or newer"
-[[ $(type -p perl) == "" ]] && error \
-    "perl is missing. Install \033[1mdev-lang/perl\033[m"
-[[ $(type -p zcat) == "" ]] && error \
-    "zcat is missing. Install \033[1mapp-arch/gzip\033[m"
-[[ $(type -p uname) == "" ]] && error \
-    "uname is missing. Install \033[1msys-apps/coreutils\033[m"
-[[ $(type -p mount) == "" ]] && error \
-    "mount is missing. Install \033[1msys-apps/util-linux\033[m"
-[[ $(type -p getopt) == "" ]] && error \
-    "getopt is missing. Install \033[1msys-apps/util-linux\033[m"
-[[ $(type -p grub-mkconfig) == "" ]] && error \
-    "grub-mkconfig is missing. Install \033[1msys-boot/grub\033[m"
-[[ $(type -p find) == "" ]] && error \
-    "find is missing. Install \033[1msys-apps/findutils\033[m"
+[[ $(whoami) != "root" ]] && error "You must be root to run this script"
+[[ "${BASH_VERSION}" < 4.4 ]] && error "${0##*/} requires \033[1mbash v4.4\033[m or newer"
+[[ $(type -p perl) ]] || error "perl is missing. Install \033[1mdev-lang/perl\033[m"
+[[ $(type -p zcat) ]] || error "zcat is missing. Install \033[1mapp-arch/gzip\033[m"
+[[ $(type -p find) ]] || error "find is missing. Install \033[1msys-apps/findutils\033[m"
+[[ $(type -p uname) ]] || error "uname is missing. Install \033[1msys-apps/coreutils\033[m"
+[[ $(type -p mount) ]] || error "mount is missing. Install \033[1msys-apps/util-linux\033[m"
+[[ $(type -p getopt) ]] || error "getopt is missing. Install \033[1msys-apps/util-linux\033[m"
+[[ $(type -p grub-mkconfig) ]] || error "grub-mkconfig is missing. Install \033[1msys-boot/grub\033[m"
 
 ### </sanity_check>
 
-scriptdir="$( cd $(dirname "${BASH_SOURCE[0]}") && pwd )"; except "Could not cd to script directory" # save script directory
+{ scriptdir="$( cd $(dirname "${BASH_SOURCE[0]}") && pwd )"; except "Could not cd to script directory"; } # save script directory
 
 ### <populate_array_with_kernel_versions>
 
@@ -59,7 +50,7 @@ kernhigh="$(largest "${kerndirs[@]}")" # return largest element from array
 
 ### <script_arguments>
 
-{ OPTS=$(getopt -ngch.sh -a -o "vk:yh" -l "version,kernel:,yestoall,help" -- "${@}"); except "getopt: Error in argument"; }
+{ OPTS=$(getopt -ngch.sh -a -o "vk:iyh" -l "version,kernel:,initramfs,yestoall,help" -- "${@}"); except "getopt: Error in argument"; }
 
 eval set -- "${OPTS}" # evaluating to avoid white space separated expansion
 
@@ -72,6 +63,10 @@ while true; do
 	    trigger="1"
 	    kernhigh="${2}" # make input argument highest version
 	    shift 2;;
+	--initramfs|-i)
+	    [[ $(type -p dracut) ]] || error "dracut is missing. Install \033[1msys-kernel/dracut\033[m"
+	    dracut="1"
+	    shift;;
 	--yestoall|-y)
 	    yestoall="1"
 	    shift;;
@@ -136,7 +131,7 @@ if [[ $(find ${bootmount} -maxdepth 0 -empty) ]]; then # check if directory is e
 
     if [[ "${REPLY}" == "y" ]]; then
 	[[ $(grep -o ${bootmount} ${fstab}) == "" ]] && error "${bootmount} missing from ${fstab}"
-	mount "${bootmount}" 2>/dev/null; except "Could not mount ${bootmount}"
+	{ mount "${bootmount}" 2>/dev/null; except "Could not mount ${bootmount}"; }
     else
 	error "${bootmount} is empty"
     fi
@@ -216,11 +211,11 @@ case ${arch} in
 	re="$(echo "${current:6}" | perl -pe 's/(\d{1,2}\.\d{1,2}\.\d{1,2})/\1-x32/')";;
     *)
 	error "\${arch}: ${arch} - Valid architectures are \033[1mx32\033[m and \033[1mx64\033[m";;
-esac
+esac; unset arch
 
 ### </naming_with_architecture>
 
-### <move_kernel_to_boot_and_rename_arch>
+### <copy_or_move>
 
 case ${kerninstall} in
     cp)
@@ -230,6 +225,10 @@ case ${kerninstall} in
     *)
 	error "\${kerninstall}: ${kerninstall} - Valid arguments are \033[1mcp\033[m and \033[1mmv\033[m";;
 esac
+
+### </copy_or_move>
+
+### <install_kernel_to_boot_and_rename_arch>
 
 if [[ "${kernhigh}" =~ ^${current}$ ]]; then
 	echo -e "\n>>> ${copy}ing \033[1m${bootmount}/System.map-${current:6}\033[m to \033[1m${bootmount}/System.map-${re}\033[m"
@@ -241,21 +240,36 @@ if [[ "${kernhigh}" =~ ^${current}$ ]]; then
 	echo -e ">>> ${copy}ing \033[1m${bootmount}/vmlinuz-${current:6}\033[m to \033[1m${bootmount}/vmlinuz-${re}\033[m"
 	{ ${kerninstall} "${bootmount}/vmlinuz-${current:6}" ${bootmount}/vmlinuz-"${re}" \
 	    2>/dev/null; except "${copy}ing vmlinuz failed"; }
-	if [[ -f "${bootmount}/initramfs-${current}" ]]; then
-	    echo -e ">>> ${copy}ing \033[1m${bootmount}/initramfs-${current:6}\033[m to \033[1m${bootmount}/initramfs-${re}\033[m"
-	    { ${kerninstall} "${bootmount}/initramfs-${current:6}" ${bootmount}/initramfs-"${re}" \
-		2>/dev/null; except "${copy}ing initramfs failed"; }
-	fi
 else
     error "Something went wrong.."
 fi; unset re kernhigh kerninstall copy
 
-### </move_kernel_to_boot_and_rename_arch>
+### </install_kernel_to_boot_and_rename_arch>
+
+### <initramfs_handling>
+
+if [[ ${dracut} == "1" ]]; then
+    if [[ ${yestoall} == "1" ]]; then
+	REPLY="y"
+    else
+	echo ""
+	read -rp "Do you want to generate initramfs? [y/N] "
+    fi
+
+    if [[ "${REPLY}" == "y" ]]; then
+	echo -e "\n>>> generating \033[1m${bootmount}/initramfs-${current:6}\033[m\n"
+	{ dracut ${dracutopt} ${current:6}; except "dracut - Generating initramfs-${current:6} failed"; }
+    else
+	echo -e "\n\e[93m*\e[0m Don't forget to run \033[1m# dracut\033[m to generate initramfs"
+    fi
+fi; unset dracutopt
+
+### </initramfs_handling>
 
 ### <grub_handling>
 
 echo ""
-{ grub-mkconfig -o "${grubcfg}"; except "grub-mkconfig failed"; }
+{ grub-mkconfig -o "${grubcfg}"; except "grub-mkconfig -o ${grubcfg} failed"; }
 
 ### </grub_handling>
 
@@ -263,14 +277,14 @@ echo ""
 
 if [[ ! $(mount | grep -o "${bootmount}") == "" ]]; then
     echo -e "\n>>> Unmounting ${bootmount}"
-    umount "${bootmount}" 2>/dev/null; except "umount ${bootmount} failed"
+    { umount "${bootmount}" 2>/dev/null; except "umount ${bootmount} failed"; }
 fi; unset grubcfg bootmount
 
 ### </unmount_handling>
 
 echo -e "Kernel version \033[1m${current}\033[m is now installed"; unset current
 
-cd "${scriptdir}" 2>/dev/null || error "Could not cd to ${scriptdir}"; unset scriptdir # return to script directory
+{ cd "${scriptdir}" 2>/dev/null || error "Could not cd to ${scriptdir}"; }; unset scriptdir # return to script directory
 
 echo -e "\n\e[93m*\e[0m If you have any installed packages with external modules"
 echo -e "\e[93m*\e[0m such as VirtualBox or GFX card drivers, don't forget to"

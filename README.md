@@ -4,11 +4,12 @@ NAME
 
 VERSION
 
-	0.12
+	0.13
 
 SYNOPSIS:
 
-	gch.sh [--help|-h] [--version|-v] [--kernel|-k <version>]  [--yestoall|-y]
+	gch.sh	[--help|-h] [--version|-v] [--kernel|-k <version>]
+		[--initramfs|-i] [--yestoall|-y]
 
 DESCRIPTION
 
@@ -31,8 +32,9 @@ DESCRIPTION
 	  /usr/src/linux
 	- Checks if a .config file exists, if not, you will either get an option
 	  to deflate it from /proc/config.gz, or manually setup new kernel .config
-	- Compiles kernel and (optionally) modules, and inintramfs depending on
-	  your makearg settings
+	- Compiles kernel and (optionally) modules, depending on your makearg
+	  settings
+	- Optionally generates initramfs to /boot with the --initramfs option
 	- Adds kernel to grub by running grub-mkconfig
 	- Automatically unmounts /boot, if mounted, after installation
 	- Makes a copy of /usr/src/linux/.config to /boot/config-<version>
@@ -41,30 +43,36 @@ DESCRIPTION
 
 ARGUMENTS
 
-	-h, --help				Display this help
-	-v, --version				Display version and exit
+	-h, --help			Display this help
+	-v, --version			Display version and exit
 
 	OPTIONS
 
 	-k, --kernel <kernel>		Kernel version in format:
-						linux-<version>-gentoo[<-r<1-9>>]
+					linux-<version>-gentoo[<-r<1-9>>]
+	-i, --initramfs			Generate initramfs
 	-y, --yestoall			Automatically answer yes to all questions
 
-	No arguments, --kernel option, and/or optionally --yestoall
+	No arguments, --kernel option, optionally --yestoall and/or --initramfs
 	option accepted
 
 DEPENDENCIES
 
 	You need to be root to run this script
 
-	- Bash v4.4 or newer	app-shells/bash
+	- Bash v4.4 or newer		app-shells/bash
 	- gentoo-sources		sys-kernel/gentoo-sources
 	- getopt			sys-apps/util-linux
 	- perl				dev-lang/perl
 	- grub				sys-boot/grub
 	- find				sys-apps/findutils
-	- uname			sys-apps/coreutils
+	- uname				sys-apps/coreutils
 	- zcat				app-arch/gzip
+
+	Only needed for initramfs support:
+
+	- dracut			sys-kernel/dracut
+
 
 	The following kernel flags are used for /proc/config.gz support,
 	and need to be set:
@@ -159,6 +167,28 @@ CONFIGURATION
 
 	Default: "x64"
 
+
+
+	dracutopt
+
+	    dracut options. If you don't use initramfs, you can safely ignore
+	    this. Do NOT remove the default settings, but append any additional
+	    options instead.See DRACUT(8) for more information. Renaming with
+	    the arch setting is not supported, as dracut searches
+	    /lib/modules/<kernel version> for modules to be included in the
+	    initramfs
+
+	Default: "--force --kver"
+
+
+
+	dracut
+
+	    Optional. set this to "1" if you want to generate initramfs when
+	    running the script without arguments
+
+	Default: ""
+
 AUTHOR
 
 	Written by Marcus Hoffren
@@ -171,7 +201,7 @@ REPORTING BUGS
 
 COPYRIGHT
 
-	Copyright Â© 2017 Marcus Hoffren. License GPLv3+:
+	Copyright © 2017 Marcus Hoffren. License GPLv3+:
 	GNU GPL version 3 or later - http://gnu.org/licenses/gpl.html
 
 	This is free software: you are free to change and redistribute it.
@@ -181,21 +211,21 @@ CHANGELOG
 
 	LEGEND: [+] Add, [-] Remove, [*] Change, [!] Bugfix
 
-	v0.5 (20170715)	[+] Initial release
-	v0.6 (20170715)	[!] Missed unset variable
+	v0.5 (20170715)		[+] Initial release
+	v0.6 (20170715)		[!] Missed unset variable
 				[!] Accidentally unset a variable too early
 				[*] Removed unnecessary duplicate code
 				[*] Minor code cleanup
-	v0.7 (20170715)	[*] Moved variable to a more logical place
+	v0.7 (20170715)		[*] Moved variable to a more logical place
 				[-] Removed variable pointer and left over
 				    eval from an earlier idea
 				[+] Added more comments
-	v0.8 (20170716)	[+] Added option for make.conf make optimization
+	v0.8 (20170716)		[+] Added option for make.conf make optimization
 				    override
 				[*] Renamed some variables and a function for
 				    clarity
 				[*] Changed an unnecessary array to a variable
-	v0.9 (20170717)	[+] Added arch setting to define architecture
+	v0.9 (20170717)		[+] Added arch setting to define architecture
 				    type in name
 				[!] Wrong var used in an error expression
 				[*] Minor code cleanup
@@ -216,6 +246,11 @@ CHANGELOG
 				[*] Minor code cleanup
 				[-] Removed superflous check for non-existing
 				    symbolic link
+	v0.13 (20170725)	[+] Added --initramfs option to generate
+				    initramfs using dracut
+				[-] Removed old initramfs related code
+				[!] Missed unset variable
+				[*] Code cleanup
 
 TODO
 
