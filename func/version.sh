@@ -1,6 +1,6 @@
 version() {
     local scrname="Gentoo genkernel Compilation Helper"
-    local scrver="0.12"
+    local scrver="0.13"
     local scrauth="Marcus Hoffren"
     local authnick="dMG/Up Rough^Divine Stylers^TrueSchool"
     local scrcontact="marcus@harikazen.com"
