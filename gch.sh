@@ -11,15 +11,20 @@
 ### <source_functions>
 
 . func/error.sh 2>/dev/null || { echo -e "\n\e[91m*\e[0m error.sh not found" 1>&2; exit 1; } # error handler
-. func/except.sh 2>/dev/null || error "\n\e[91m*\e[0m except.sh not found" # exception handler
-. func/version.sh 2>/dev/null || error "\n\e[91m*\e[0m version.sh not found"
-. func/largest.sh 2>/dev/null || error "\n\e[91m*\e[0m largest.sh not found" # return largest element from array
-. func/usage.sh 2>/dev/null || error "\n\e[91m*\e[0m usage.sh not found"
-. func/gtoe.sh 2>/dev/null || error "\n\e[91m*\e[0m gtoe.sh not found" # lexicographic greater than or equal
+. func/gtoe.sh 2>/dev/null || error "gtoe.sh not found" # lexicographic greater than or equal
+. func/usage.sh 2>/dev/null || error "usage.sh not found"
+. func/except.sh 2>/dev/null || error "except.sh not found" # exception handler
+. func/missing.sh 2>/dev/null || error "missing.sh not found" # missing dependency handler
+. func/version.sh 2>/dev/null || error "version.sh not found"
+. func/largest.sh 2>/dev/null || error "largest.sh not found" # return largest element from array
+. func/yestoall.sh 2>/dev/null || error "yestoall.sh not found" # yestoall handler
 
 ### </source_functions>
 
 ### <sanity_check>
+
+[[ $(whoami) != "root" ]] && error "You must be root to run this script"
+[[ "${BASH_VERSION}" < 4.4 ]] && error "${0##*/} requires \033[1mbash v4.4\033[m or newer"
 
 if [[ -e gch.conf ]]; then
     . gch.conf
@@ -27,19 +32,16 @@ else
     error "gkh.conf not found"
 fi
 
-[[ $(whoami) != "root" ]] && error "You must be root to run this script"
-[[ "${BASH_VERSION}" < 4.4 ]] && error "${0##*/} requires \033[1mbash v4.4\033[m or newer"
-[[ $(type -p perl) ]] || error "perl is missing. Install \033[1mdev-lang/perl\033[m"
-[[ $(type -p zcat) ]] || error "zcat is missing. Install \033[1mapp-arch/gzip\033[m"
-[[ $(type -p find) ]] || error "find is missing. Install \033[1msys-apps/findutils\033[m"
-[[ $(type -p uname) ]] || error "uname is missing. Install \033[1msys-apps/coreutils\033[m"
-[[ $(type -p mount) ]] || error "mount is missing. Install \033[1msys-apps/util-linux\033[m"
-[[ $(type -p getopt) ]] || error "getopt is missing. Install \033[1msys-apps/util-linux\033[m"
-[[ $(type -p grub-mkconfig) ]] || error "grub-mkconfig is missing. Install \033[1msys-boot/grub\033[m"
+missing "perl" "dev-lang/perl" # "look for" "required package"
+missing "zcat" "app-arch/gzip"
+missing "find" "sys-apps/findutils"
+missing "uname" "sys-apps/coreutils"
+missing "getopt" "sys-apps/util-linux"
+missing "grub-mkconfig" "sys-boot/grub"
 
 ### </sanity_check>
 
-{ scriptdir="$( cd $(dirname "${BASH_SOURCE[0]}") && pwd )"; except "Could not cd to script directory"; } # save script directory
+{ scriptdir="$(cd $(dirname "${BASH_SOURCE[0]}"); pwd)"; except "Could not cd to script directory"; } # save script directory
 
 ### <populate_array_with_kernel_versions>
 
@@ -64,7 +66,6 @@ while true; do
 	    kernhigh="${2}" # make input argument highest version
 	    shift 2;;
 	--initramfs|-i)
-	    [[ $(type -p dracut) ]] || error "dracut is missing. Install \033[1msys-kernel/dracut\033[m"
 	    dracut="1"
 	    shift;;
 	--yestoall|-y)
@@ -83,6 +84,8 @@ while true; do
 done
 
 ### </script_arguments>
+
+[[ ${dracut} == "1" ]] && missing "dracut" "sys-kernel/dracut"
 
 ### <kernel_version_sanity_check>
 
@@ -108,12 +111,9 @@ fi; unset re kerndirs trigger
 ### <kernel_reinstall_check>
 
 if [[ ${current} =~ ^linux-$(uname -r)$ ]]; then
-    echo ""
-    if [[ ${yestoall} == "1" ]]; then
-	REPLY="y"
-    else
-	read -rp "Kernel ${current} currently in use. Do you want to reinstall it? [y/N] "
-    fi
+
+    yestoall "Kernel ${current} currently in use. Do you want to reinstall it? [y/N]"
+
     [[ "${REPLY}" != "y" ]] && { echo -e "\nSee ya!\n"; exit 0; }
 fi
 
@@ -122,12 +122,8 @@ fi
 ### <mount_handling>
 
 if [[ $(find ${bootmount} -maxdepth 0 -empty) ]]; then # check if directory is empty
-    echo ""
-    if [[ ${yestoall} == "1" ]]; then
-	REPLY="y"
-    else
-	read -rp "${bootmount} is empty. Do you want to try to mount it? [y/N] "
-    fi
+
+    yestoall "${bootmount} is empty. Do you want to try to mount it? [y/N]"
 
     if [[ "${REPLY}" == "y" ]]; then
 	[[ $(grep -o ${bootmount} ${fstab}) == "" ]] && error "${bootmount} missing from ${fstab}"
@@ -153,11 +149,8 @@ echo -e ">>> Creating symbolic link \033[1m${kernelroot}/${current}\033[m as \03
 ### <config_handling>
 
 if [[ ! -f ${kernelroot}/linux/.config ]]; then
-	if [[ ${yestoall} == "1" ]]; then
-	    REPLY="y"
-	else
-	    read -rp "${kernelroot}/linux/.config not present. Reuse old .config from /proc/config.gz? [y/N] "
-	fi
+
+	yestoall "${kernelroot}/linux/.config not present. Reuse old .config from /proc/config.gz? [y/N]"
 
 	if [[ "${REPLY}" == "y" ]]; then
 	    if [[ -e /proc/config.gz ]]; then
@@ -186,32 +179,27 @@ cd "${kernelroot}/linux" 2>/dev/null || error "Could not cd ${kernelroot}/linux"
 
 ### <compilation_handling>
 
-echo ""
-if [[ ${yestoall} == "1" ]]; then
-    REPLY="y"
-else
-    read -rp "Init complete. Do you want to compile kernel now? [y/N] "
-fi
+yestoall "Init complete. Do you want to compile kernel now? [y/N]"
 
 if [[ "${REPLY}" == "y" ]]; then
     echo ""
     { make ${makeopt} ${makearg}; except "make ${makeopt} ${makearg} failed"; }
 else
     echo -e "\nSee Ya!\n"; exit 0
-fi; unset makeopt makearg yestoall
+fi; unset makeopt makearg
 
 ### </compilation_handling>
 
 ### <naming_with_architecture>
 
-case ${arch} in
+case ${architecture} in
     x64)
 	re="$(echo "${current:6}" | perl -pe 's/(\d{1,2}\.\d{1,2}\.\d{1,2})/\1-x64/')";;
     x32)
 	re="$(echo "${current:6}" | perl -pe 's/(\d{1,2}\.\d{1,2}\.\d{1,2})/\1-x32/')";;
     *)
-	error "\${arch}: ${arch} - Valid architectures are \033[1mx32\033[m and \033[1mx64\033[m";;
-esac; unset arch
+	error "\${architecture}: ${architecture} - Valid architectures are \033[1mx32\033[m and \033[1mx64\033[m";;
+esac; unset architecture
 
 ### </naming_with_architecture>
 
@@ -219,9 +207,9 @@ esac; unset arch
 
 case ${kerninstall} in
     cp)
-	copy="copy";;
+	copy="Copy";;
     mv)
-	copy="mov";;
+	copy="Mov";;
     *)
 	error "\${kerninstall}: ${kerninstall} - Valid arguments are \033[1mcp\033[m and \033[1mmv\033[m";;
 esac
@@ -249,20 +237,16 @@ fi; unset re kernhigh kerninstall copy
 ### <initramfs_handling>
 
 if [[ ${dracut} == "1" ]]; then
-    if [[ ${yestoall} == "1" ]]; then
-	REPLY="y"
-    else
-	echo ""
-	read -rp "Do you want to generate initramfs? [y/N] "
-    fi
+
+    yestoall "Do you want to generate initramfs? [y/N]"
 
     if [[ "${REPLY}" == "y" ]]; then
-	echo -e "\n>>> generating \033[1m${bootmount}/initramfs-${current:6}\033[m\n"
+	echo -e "\n>>> Generating \033[1m${bootmount}/initramfs-${current:6}\033[m\n"
 	{ dracut ${dracutopt} ${current:6}; except "dracut - Generating initramfs-${current:6} failed"; }
     else
 	echo -e "\n\e[93m*\e[0m Don't forget to run \033[1m# dracut\033[m to generate initramfs"
     fi
-fi; unset dracutopt
+fi; unset dracutopt dracut yestoall
 
 ### </initramfs_handling>
 
@@ -282,11 +266,11 @@ fi; unset grubcfg bootmount
 
 ### </unmount_handling>
 
-echo -e "Kernel version \033[1m${current}\033[m is now installed"; unset current
+echo -e "Kernel version \033[1m${current}\033[m is now installed\n"; unset current
 
-{ cd "${scriptdir}" 2>/dev/null || error "Could not cd to ${scriptdir}"; }; unset scriptdir # return to script directory
+cd "${scriptdir}" 2>/dev/null || error "Could not cd to ${scriptdir}"; unset scriptdir # return to script directory
 
-echo -e "\n\e[93m*\e[0m If you have any installed packages with external modules"
+echo -e "\e[93m*\e[0m If you have any installed packages with external modules"
 echo -e "\e[93m*\e[0m such as VirtualBox or GFX card drivers, don't forget to"
 echo -e "\e[93m*\e[0m run \033[1m# emerge -1 @module-rebuild\033[m after upgrading\n"
 exit 0

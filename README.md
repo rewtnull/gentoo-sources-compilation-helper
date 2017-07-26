@@ -4,7 +4,7 @@ NAME
 
 VERSION
 
-	0.13
+	0.14
 
 SYNOPSIS:
 
@@ -43,15 +43,15 @@ DESCRIPTION
 
 ARGUMENTS
 
-	-h, --help				Display this help
-	-v, --version				Display version and exit
+	-h, --help			Display this help
+	-v, --version			Display version and exit
 
 	OPTIONS
 
-	-k, --kernel <kernel>			Kernel version in format:
-						linux-<version>-gentoo[<-r<1-9>>]
+	-k, --kernel <kernel>		Kernel version in format:
+					linux-<version>-gentoo[<-r<1-9>>]
 	-i, --initramfs			Generate initramfs
-	-y, --yestoall				Automatically answer yes to all questions
+	-y, --yestoall			Automatically answer yes to all questions
 
 	No arguments, --kernel option, optionally --yestoall and/or --initramfs
 	option accepted
@@ -72,7 +72,6 @@ DEPENDENCIES
 	Only needed for initramfs support:
 
 	- dracut			sys-kernel/dracut
-
 
 	The following kernel flags are used for /proc/config.gz support,
 	and need to be set:
@@ -109,7 +108,7 @@ CONFIGURATION
 
 	    fstab location
 
-	 Default: "/etc/fstab"
+	Default: "/etc/fstab"
 
 
 
@@ -136,7 +135,7 @@ CONFIGURATION
 
 	    make kernel build options. See
 	    https://wiki.gentoo.org/wiki/Kernel/Configuration for
-	    more information
+	    more information. initramfs support implemented but untested.
 
 	Default: "bzImage modules modules_install install"
 
@@ -160,7 +159,7 @@ CONFIGURATION
 
 
 
-	arch
+	architecture
 
 	    Adds architecture to name. i.e. vmlinuz-<version>-x64-gentoo ...
 	    Valid options are "x32" and "x64"
@@ -174,7 +173,7 @@ CONFIGURATION
 	    dracut options. If you don't use initramfs, you can safely ignore
 	    this. Do NOT remove the default settings, but append any additional
 	    options instead.See DRACUT(8) for more information. Renaming with
-	    the arch setting is not supported, as dracut searches
+	    the architecture setting is not supported, as dracut searches
 	    /lib/modules/<kernel version> for modules to be included in the
 	    initramfs
 
@@ -184,7 +183,7 @@ CONFIGURATION
 
 	dracut
 
-	    Optional. set this to "1" if you want to generate initramfs when
+	    Optional. Set this to "1" if you want to generate initramfs when
 	    running the script without arguments
 
 	Default: ""
@@ -201,7 +200,7 @@ REPORTING BUGS
 
 COPYRIGHT
 
-	Copyright Â© 2017 Marcus Hoffren. License GPLv3+:
+	Copyright © 2017 Marcus Hoffren. License GPLv3+:
 	GNU GPL version 3 or later - http://gnu.org/licenses/gpl.html
 
 	This is free software: you are free to change and redistribute it.
@@ -211,21 +210,21 @@ CHANGELOG
 
 	LEGEND: [+] Add, [-] Remove, [*] Change, [!] Bugfix
 
-	v0.5 (20170715)	[+] Initial release
-	v0.6 (20170715)	[!] Missed unset variable
+	v0.5 (20170715)		[+] Initial release
+	v0.6 (20170715)		[!] Missed unset variable
 				[!] Accidentally unset a variable too early
 				[*] Removed unnecessary duplicate code
 				[*] Minor code cleanup
-	v0.7 (20170715)	[*] Moved variable to a more logical place
+	v0.7 (20170715)		[*] Moved variable to a more logical place
 				[-] Removed variable pointer and left over
 				    eval from an earlier idea
 				[+] Added more comments
-	v0.8 (20170716)	[+] Added option for make.conf make optimization
+	v0.8 (20170716)		[+] Added option for make.conf make optimization
 				    override
 				[*] Renamed some variables and a function for
 				    clarity
 				[*] Changed an unnecessary array to a variable
-	v0.9 (20170717)	[+] Added arch setting to define architecture
+	v0.9 (20170717)		[+] Added arch setting to define architecture
 				    type in name
 				[!] Wrong var used in an error expression
 				[*] Minor code cleanup
@@ -251,6 +250,15 @@ CHANGELOG
 				[-] Removed old initramfs related code
 				[!] Missed unset variable
 				[*] Code cleanup
+	v0.14 (20170726)	[!] Moved dracut check outside of getopt
+				[!] yestoall variable unset too early
+				[*] Refractored yestoall code by lifting it
+				    out to a general yestoall function
+				[*] Refractored parts of sanity check to
+				    missing function
+				[*] Renamed arch to architecture to avoid
+				    possible naming conflict with coreutils
+				    arch command
 
 TODO
 
