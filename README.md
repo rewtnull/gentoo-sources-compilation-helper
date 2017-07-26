@@ -135,7 +135,7 @@ CONFIGURATION
 
 	    make kernel build options. See
 	    https://wiki.gentoo.org/wiki/Kernel/Configuration for
-	    more information. initramfs support implemented but untested.
+	    more information.
 
 	Default: "bzImage modules modules_install install"
 
