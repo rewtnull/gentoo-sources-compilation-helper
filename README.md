@@ -4,7 +4,7 @@ NAME
 
 VERSION
 
-	0.14
+	0.15
 
 SYNOPSIS:
 
@@ -50,7 +50,7 @@ ARGUMENTS
 
 	-k, --kernel <kernel>		Kernel version in format:
 					linux-<version>-gentoo[<-r<1-9>>]
-	-i, --initramfs		Generate initramfs
+	-i, --initramfs			Generate initramfs
 	-y, --yestoall			Automatically answer yes to all questions
 
 	No arguments, --kernel option, optionally --yestoall and/or --initramfs
@@ -150,15 +150,6 @@ CONFIGURATION
 
 
 
-	kerninstall
-
-	    Gives the choice to copy or move kernel files to boot directory
-	    Valid options are "cp" and "mv"
-
-	Default: "mv"
-
-
-
 	architecture
 
 	    Adds architecture to name. i.e. vmlinuz-<version>-x64-gentoo ...
@@ -171,13 +162,13 @@ CONFIGURATION
 	dracutopt
 
 	    dracut options. If you don't use initramfs, you can safely ignore
-	    this. Do NOT remove the default settings, but append any additional
-	    options instead.See DRACUT(8) for more information. Renaming with
-	    the architecture setting is not supported, as dracut searches
-	    /lib/modules/<kernel version> for modules to be included in the
-	    initramfs
+	    this. Do NOT add --force and/or --kver options, since these are
+	    already hardcoded. See DRACUT(8) for more information on which
+	    options you can use. Renaming with the architecture setting is not
+	    supported, as dracut searches /lib/modules/<kernel version> for
+	    modules to be included in the initramfs
 
-	Default: "--force --kver"
+	Default: ""
 
 
 
@@ -200,7 +191,7 @@ REPORTING BUGS
 
 COPYRIGHT
 
-	Copyright Â© 2017 Marcus Hoffren. License GPLv3+:
+	Copyright © 2017 Marcus Hoffren. License GPLv3+:
 	GNU GPL version 3 or later - http://gnu.org/licenses/gpl.html
 
 	This is free software: you are free to change and redistribute it.
@@ -210,21 +201,21 @@ CHANGELOG
 
 	LEGEND: [+] Add, [-] Remove, [*] Change, [!] Bugfix
 
-	v0.5 (20170715)	[+] Initial release
-	v0.6 (20170715)	[!] Missed unset variable
+	v0.5 (20170715)		[+] Initial release
+	v0.6 (20170715)		[!] Missed unset variable
 				[!] Accidentally unset a variable too early
 				[*] Removed unnecessary duplicate code
 				[*] Minor code cleanup
-	v0.7 (20170715)	[*] Moved variable to a more logical place
+	v0.7 (20170715)		[*] Moved variable to a more logical place
 				[-] Removed variable pointer and left over
 				    eval from an earlier idea
 				[+] Added more comments
-	v0.8 (20170716)	[+] Added option for make.conf make optimization
+	v0.8 (20170716)		[+] Added option for make.conf make optimization
 				    override
 				[*] Renamed some variables and a function for
 				    clarity
 				[*] Changed an unnecessary array to a variable
-	v0.9 (20170717)	[+] Added arch setting to define architecture
+	v0.9 (20170717)		[+] Added arch setting to define architecture
 				    type in name
 				[!] Wrong var used in an error expression
 				[*] Minor code cleanup
@@ -259,6 +250,16 @@ CHANGELOG
 				[*] Renamed arch to architecture to avoid
 				    possible naming conflict with coreutils
 				    arch command
+	v0.15 (20170727)	[*] Rewrote symlink handler to create symlink
+				    only if it doesn't exist/point to the right
+				    kernel version
+				[*] Refractored renaming handler to do the
+				    same with less code, also removed superflous
+				    check
+				[*] Decided to hardcode dracut --force and --kver
+				    options since they are always needed anyway
+				[-] Removed copy/move option. Why did i even put
+				    it there to begin with? We will never know
 
 TODO
 

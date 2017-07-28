@@ -104,14 +104,13 @@ if [[ "${kernhigh}" =~ ${re} ]]; then # check if input format is valid
     [[ ${current} == "" ]] && error "${kernhigh} - Version does not exist. Is it installed under ${kernelroot}?"
 else
     error "${kernhigh} - Illegal format. Use linux-<version>-gentoo[<-r<1-9>>]"
-fi; unset re kerndirs trigger
+fi; unset re kerndirs kernhigh trigger
 
 ### </kernel_version_sanity_check>
 
 ### <kernel_reinstall_check>
 
 if [[ ${current} =~ ^linux-$(uname -r)$ ]]; then
-
     yestoall "Kernel ${current} currently in use. Do you want to reinstall it? [y/N]"
 
     [[ "${REPLY}" != "y" ]] && { echo -e "\nSee ya!\n"; exit 0; }
@@ -122,7 +121,6 @@ fi
 ### <mount_handling>
 
 if [[ $(find ${bootmount} -maxdepth 0 -empty) ]]; then # check if directory is empty
-
     yestoall "${bootmount} is empty. Do you want to try to mount it? [y/N]"
 
     if [[ "${REPLY}" == "y" ]]; then
@@ -135,21 +133,26 @@ fi; unset fstab
 
 ### </mount_handling>
 
-echo -e "\n\e[92m*\e[0m Processing kernel: \033[1m${current}\033[m"
+echo -e "\n\e[92m*\e[0m Processing kernel: \033[1m${current}\033[m\n"
 
 ### <symbolic_link_handling>
 
-[[ -L ${kernelroot}/linux ]] && { rm ${kernelroot}/linux 2>/dev/null; except "Could not remove symbolic link ${kernelroot}/linux"; }
+if [[ -L ${kernelroot}/linux ]]; then
+    if [[ ! "${kernelroot}/linux" -ef "${kernelroot}/${current}" ]]; then # remove symlink if it's doesn't point to the right kernel
+	{ rm ${kernelroot}/linux 2>/dev/null; except "Could not remove symbolic link ${kernelroot}/linux"; }
+    fi
+fi
 
-echo -e ">>> Creating symbolic link \033[1m${kernelroot}/${current}\033[m as \033[1m${kernelroot}/linux\033[m\n"
-{ ln -s "${kernelroot}/${current}" "${kernelroot}/linux" 2>/dev/null;  except "Could not create symbolic link"; }
+if [[ ! -L ${kernelroot}/linux ]]; then # if symlink doesn't exist, create it
+    echo -e ">>> Creating symbolic link \033[1m${kernelroot}/${current}\033[m as \033[1m${kernelroot}/linux\033[m\n"
+    { ln -s "${kernelroot}/${current}" "${kernelroot}/linux" 2>/dev/null;  except "Could not create symbolic link"; }
+fi
 
 ### </symbolic_link_handling>
 
 ### <config_handling>
 
 if [[ ! -f ${kernelroot}/linux/.config ]]; then
-
 	yestoall "${kernelroot}/linux/.config not present. Reuse old .config from /proc/config.gz? [y/N]"
 
 	if [[ "${REPLY}" == "y" ]]; then
@@ -190,7 +193,7 @@ fi; unset makeopt makearg
 
 ### </compilation_handling>
 
-### <naming_with_architecture>
+### <rename_with_architecture>
 
 case ${architecture} in
     x64)
@@ -201,48 +204,24 @@ case ${architecture} in
 	error "\${architecture}: ${architecture} - Valid architectures are \033[1mx32\033[m and \033[1mx64\033[m";;
 esac; unset architecture
 
-### </naming_with_architecture>
+filename=("System.map" "config" "vmlinuz")
+echo ""
+for (( s = 0; s < ${#filename[@]}; s++ )); do
+    echo -e ">>> Moving \033[1m${bootmount}/${filename[${s}]}-${current:6}\033[m to \033[1m${bootmount}/${filename[${s}]}-${re}\033[m"
+    { mv "${bootmount}/${filename[${s}]}-${current:6}" "${bootmount}/${filename[${s}]}-${re}" \
+	2>/dev/null; except "Moving ${filename[${s}]} failed"; }
+done; unset re filename s
 
-### <copy_or_move>
-
-case ${kerninstall} in
-    cp)
-	copy="Copy";;
-    mv)
-	copy="Mov";;
-    *)
-	error "\${kerninstall}: ${kerninstall} - Valid arguments are \033[1mcp\033[m and \033[1mmv\033[m";;
-esac
-
-### </copy_or_move>
-
-### <install_kernel_to_boot_and_rename_arch>
-
-if [[ "${kernhigh}" =~ ^${current}$ ]]; then
-	echo -e "\n>>> ${copy}ing \033[1m${bootmount}/System.map-${current:6}\033[m to \033[1m${bootmount}/System.map-${re}\033[m"
-	{ ${kerninstall} "${bootmount}/System.map-${current:6}" ${bootmount}/System.map-"${re}" \
-	    2>/dev/null; except "${copy}ing System.map failed"; }
-	echo -e ">>> ${copy}ing \033[1m${bootmount}/config-${current:6}\033[m to \033[1m${bootmount}/config-${re}\033[m"
-	{ ${kerninstall} "${bootmount}/config-${current:6}" ${bootmount}/config-"${re}" \
-	    2>/dev/null; except "${copy}ing config failed"; }
-	echo -e ">>> ${copy}ing \033[1m${bootmount}/vmlinuz-${current:6}\033[m to \033[1m${bootmount}/vmlinuz-${re}\033[m"
-	{ ${kerninstall} "${bootmount}/vmlinuz-${current:6}" ${bootmount}/vmlinuz-"${re}" \
-	    2>/dev/null; except "${copy}ing vmlinuz failed"; }
-else
-    error "Something went wrong.."
-fi; unset re kernhigh kerninstall copy
-
-### </install_kernel_to_boot_and_rename_arch>
+### </rename_with_architecture>
 
 ### <initramfs_handling>
 
 if [[ ${dracut} == "1" ]]; then
-
     yestoall "Do you want to generate initramfs? [y/N]"
 
     if [[ "${REPLY}" == "y" ]]; then
-	echo -e "\n>>> Generating \033[1m${bootmount}/initramfs-${current:6}\033[m\n"
-	{ dracut ${dracutopt} ${current:6}; except "dracut - Generating initramfs-${current:6} failed"; }
+	echo -e ">>> Generating \033[1m${bootmount}/initramfs-${current:6}\033[m\n"
+	{ dracut "${dracutopt}" --force --kver "${current:6}"; except "dracut - Generating initramfs-${current:6} failed"; }
     else
 	echo -e "\n\e[93m*\e[0m Don't forget to run \033[1m# dracut\033[m to generate initramfs"
     fi
