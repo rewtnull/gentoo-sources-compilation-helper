@@ -42,13 +42,13 @@ DESCRIPTION
 
 ARGUMENTS
 
-	-h, --help			Display this help
-	-v, --version			Display version and exit
+	-h, --help				Display this help
+	-v, --version				Display version and exit
 
 	OPTIONS
 
 	-k, --kernel <kernel>		Kernel version in format:
-					linux-<version>-gentoo[<-r<1-9>>]
+						linux-<version>-gentoo[<-r<1-9>>]
 	-i, --initramfs			Generate initramfs
 	-y, --yestoall			Automatically answer yes to all questions
 
