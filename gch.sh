@@ -66,6 +66,7 @@ while true; do
 	    kernhigh="${2}" # make input argument highest version
 	    shift 2;;
 	--initramfs|-i)
+	    missing "dracut" "sys-kernel/dracut"
 	    dracut="1"
 	    shift;;
 	--yestoall|-y)
@@ -85,11 +86,9 @@ done
 
 ### </script_arguments>
 
-[[ ${dracut} == "1" ]] && missing "dracut" "sys-kernel/dracut"
-
 ### <kernel_version_sanity_check>
 
-re="^(linux-)[0-9]{1,2}\.[0-9]{1,2}\.[0-9]{1,2}(-r[0-9]([0-9])?)?(-gentoo)(-r[0-9]([0-9])?)?$"
+re="^(linux-)[0-9]{1,2}\.[0-9]{1,2}\.[0-9]{1,2}(-gentoo)(-r[0-9]([0-9])?)?$"
 
 if [[ "${kernhigh}" =~ ${re} ]]; then # check if input format is valid
     if [[ "${trigger}" == "1" ]]; then # --kernel option set
@@ -125,6 +124,7 @@ if [[ $(find ${bootmount} -maxdepth 0 -empty) ]]; then # check if directory is e
 
     if [[ "${REPLY}" == "y" ]]; then
 	[[ $(grep -o ${bootmount} ${fstab}) == "" ]] && error "${bootmount} missing from ${fstab}"
+	echo -e ">>> Mounting ${bootmount}"
 	{ mount "${bootmount}" 2>/dev/null; except "Could not mount ${bootmount}"; }
     else
 	error "${bootmount} is empty"
@@ -153,7 +153,7 @@ fi
 ### <config_handling>
 
 if [[ ! -f ${kernelroot}/linux/.config ]]; then
-	yestoall "${kernelroot}/linux/.config not present. Reuse old .config from /proc/config.gz? [y/N]"
+	yestoall "${kernelroot}/linux/.config not present. Reuse current .config from /proc/config.gz? [y/N]"
 
 	if [[ "${REPLY}" == "y" ]]; then
 	    if [[ -e /proc/config.gz ]]; then
@@ -208,8 +208,8 @@ filename=("System.map" "config" "vmlinuz")
 echo ""
 for (( s = 0; s < ${#filename[@]}; s++ )); do
     echo -e ">>> Moving \033[1m${bootmount}/${filename[${s}]}-${current:6}\033[m to \033[1m${bootmount}/${filename[${s}]}-${re}\033[m"
-    { mv "${bootmount}/${filename[${s}]}-${current:6}" "${bootmount}/${filename[${s}]}-${re}" \
-	2>/dev/null; except "Moving ${filename[${s}]} failed"; }
+    { mv "${bootmount}/${filename[${s}]}-${current:6}" "${bootmount}/${filename[${s}]}-${re}" 2>/dev/null; \
+	except "Moving ${filename[${s}]} failed"; }
 done; unset re filename s
 
 ### </rename_with_architecture>
@@ -221,7 +221,7 @@ if [[ ${dracut} == "1" ]]; then
 
     if [[ "${REPLY}" == "y" ]]; then
 	echo -e ">>> Generating \033[1m${bootmount}/initramfs-${current:6}\033[m\n"
-	{ dracut "${dracutopt}" --force --kver "${current:6}"; except "dracut - Generating initramfs-${current:6} failed"; }
+	{ dracut ${dracutopt} --force --kver "${current:6}"; except "dracut - Generating initramfs-${current:6} failed"; }
     else
 	echo -e "\n\e[93m*\e[0m Don't forget to run \033[1m# dracut\033[m to generate initramfs"
     fi
@@ -238,7 +238,7 @@ echo ""
 
 ### <unmount_handling>
 
-if [[ ! $(mount | grep -o "${bootmount}") == "" ]]; then
+if [[ $(mount | grep -o "${bootmount}") != "" ]]; then
     echo -e "\n>>> Unmounting ${bootmount}"
     { umount "${bootmount}" 2>/dev/null; except "umount ${bootmount} failed"; }
 fi; unset grubcfg bootmount

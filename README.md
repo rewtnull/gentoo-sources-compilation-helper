@@ -4,7 +4,7 @@ NAME
 
 VERSION
 
-	0.15
+	0.16
 
 SYNOPSIS:
 
@@ -38,7 +38,6 @@ DESCRIPTION
 	- Adds kernel to grub by running grub-mkconfig
 	- Automatically unmounts /boot, if mounted, after installation
 	- Makes a copy of /usr/src/linux/.config to /boot/config-<version>
-	- Copies or moves the kernel files to your boot directory
 	- Adds *-x64* to naming because i don't know
 
 ARGUMENTS
@@ -50,7 +49,7 @@ ARGUMENTS
 
 	-k, --kernel <kernel>		Kernel version in format:
 					linux-<version>-gentoo[<-r<1-9>>]
-	-i, --initramfs		Generate initramfs
+	-i, --initramfs			Generate initramfs
 	-y, --yestoall			Automatically answer yes to all questions
 
 	No arguments, --kernel option, optionally --yestoall and/or --initramfs
@@ -191,7 +190,7 @@ REPORTING BUGS
 
 COPYRIGHT
 
-	Copyright Â© 2017 Marcus Hoffren. License GPLv3+:
+	Copyright © 2017 Marcus Hoffren. License GPLv3+:
 	GNU GPL version 3 or later - http://gnu.org/licenses/gpl.html
 
 	This is free software: you are free to change and redistribute it.
@@ -201,21 +200,21 @@ CHANGELOG
 
 	LEGEND: [+] Add, [-] Remove, [*] Change, [!] Bugfix
 
-	v0.5 (20170715)	[+] Initial release
-	v0.6 (20170715)	[!] Missed unset variable
+	v0.5 (20170715)		[+] Initial release
+	v0.6 (20170715)		[!] Missed unset variable
 				[!] Accidentally unset a variable too early
 				[*] Removed unnecessary duplicate code
 				[*] Minor code cleanup
-	v0.7 (20170715)	[*] Moved variable to a more logical place
+	v0.7 (20170715)		[*] Moved variable to a more logical place
 				[-] Removed variable pointer and left over
 				    eval from an earlier idea
 				[+] Added more comments
-	v0.8 (20170716)	[+] Added option for make.conf make optimization
+	v0.8 (20170716)		[+] Added option for make.conf make optimization
 				    override
 				[*] Renamed some variables and a function for
 				    clarity
 				[*] Changed an unnecessary array to a variable
-	v0.9 (20170717)	[+] Added arch setting to define architecture
+	v0.9 (20170717)		[+] Added arch setting to define architecture
 				    type in name
 				[!] Wrong var used in an error expression
 				[*] Minor code cleanup
@@ -260,6 +259,14 @@ CHANGELOG
 				    options since they are always needed anyway
 				[-] Removed copy/move option. Why did i even put
 				    it there to begin with? We will never know
+	v0.16 (20170917)	[!] Found out that even variables used in loop
+				    expressions are global in bash /o\
+				[!] Fixed bug in lexicographical comparison to
+				    return the largest element in cases like
+				    f.i. 4.1.9 vs. 4.1.10
+				[*] Moved dracut check to where it makes more
+				    sense
+				[*] Removed reduntant part of regex
 
 TODO
 
