@@ -259,7 +259,7 @@ CHANGELOG
 				    options since they are always needed anyway
 				[-] Removed copy/move option. Why did i even put
 				    it there to begin with? We will never know
-	v0.16 (20170917)	[!] Found out that even variables used in loop
+	v0.16 (20170917)	[!] Found out that even variables declared in loop
 				    expressions are global in bash /o\
 				[!] Fixed bug in lexicographical comparison to
 				    return the largest element in cases like
