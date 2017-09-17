@@ -1,4 +1,5 @@
 # largest( ${array[@]} ) => $largest
+
 largest() {
     local array=("${@}")
     if (( ${#array[@]} > "1" )); then # If array consists of one single element it's already the largest one
@@ -9,4 +10,4 @@ largest() {
 	largest_element="${array[0]}"
     fi
     echo "${largest_element}"
-}; unset largest_element
+}; unset largest_element i
