@@ -59,7 +59,7 @@ DEPENDENCIES
 
 	You need to be root to run this script
 
-	- Bash v4.4 or newer	app-shells/bash
+	- Bash v4.4 or newer		app-shells/bash
 	- gentoo-sources		sys-kernel/gentoo-sources
 	- getopt			sys-apps/util-linux
 	- perl				dev-lang/perl
@@ -121,7 +121,7 @@ CONFIGURATION
 
 	makeconf
 
-	    make kernel configutation option This could be "oldconfig",
+	    make kernel configuration option This could be "oldconfig",
 	    "xconfig", "menuconfig" and so on.
 	    See https://wiki.gentoo.org/wiki/Kernel/Configuration
 	    for more information.
