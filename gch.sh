@@ -14,6 +14,7 @@
 . func/gtoe.sh 2>/dev/null || error "gtoe.sh not found" # lexicographic greater than or equal
 . func/usage.sh 2>/dev/null || error "usage.sh not found"
 . func/except.sh 2>/dev/null || error "except.sh not found" # exception handler
+. func/addzero.sh 2>/dev/null || error "addzero.sh not found" # under some conditions, adds a 0 to version string
 . func/missing.sh 2>/dev/null || error "missing.sh not found" # missing dependency handler
 . func/version.sh 2>/dev/null || error "version.sh not found"
 . func/largest.sh 2>/dev/null || error "largest.sh not found" # return largest element from array
@@ -45,7 +46,7 @@ missing "grub-mkconfig" "sys-boot/grub"
 
 ### <populate_array_with_kernel_versions>
 
-kerndirs=(${kernelroot}/*); kerndirs=("${kerndirs[@]##*/}") # basename
+kerndirs=(${kernelroot}/linux-*); kerndirs=("${kerndirs[@]##*/}") # basename
 kernhigh="$(largest "${kerndirs[@]}")" # return largest element from array
 
 ### </populate_array_with_kernel_versions>
@@ -82,7 +83,7 @@ while true; do
 	    usage
 	    exit 1;;
     esac
-done
+done; unset OPTS
 
 ### </script_arguments>
 
@@ -232,7 +233,7 @@ fi; unset dracutopt dracut yestoall
 ### <grub_handling>
 
 echo ""
-{ grub-mkconfig -o "${grubcfg}"; except "grub-mkconfig -o ${grubcfg} failed"; }
+{ grub-mkconfig -o "${grubcfg}"; except "grub-mkconfig -o ${grubcfg} failed"; }; unset grubcfg
 
 ### </grub_handling>
 
@@ -241,7 +242,7 @@ echo ""
 if [[ $(mount | grep -o "${bootmount}") != "" ]]; then
     echo -e "\n>>> Unmounting ${bootmount}"
     { umount "${bootmount}" 2>/dev/null; except "umount ${bootmount} failed"; }
-fi; unset grubcfg bootmount
+fi; unset bootmount
 
 ### </unmount_handling>
 

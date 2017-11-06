@@ -42,13 +42,13 @@ DESCRIPTION
 
 ARGUMENTS
 
-	-h, --help				Display this help
-	-v, --version				Display version and exit
+	-h, --help			Display this help
+	-v, --version			Display version and exit
 
 	OPTIONS
 
 	-k, --kernel <kernel>		Kernel version in format:
-						linux-<version>-gentoo[<-r<1-9>>]
+					linux-<version>-gentoo[<-r<1-9>>]
 	-i, --initramfs			Generate initramfs
 	-y, --yestoall			Automatically answer yes to all questions
 
@@ -65,7 +65,7 @@ DEPENDENCIES
 	- perl				dev-lang/perl
 	- grub				sys-boot/grub
 	- find				sys-apps/findutils
-	- uname			sys-apps/coreutils
+	- uname				sys-apps/coreutils
 	- zcat				app-arch/gzip
 
 	Only needed for initramfs support:
@@ -121,7 +121,7 @@ CONFIGURATION
 
 	makeconf
 
-	    make kernel configuration option This could be "oldconfig",
+	    make kernel configutation option This could be "oldconfig",
 	    "xconfig", "menuconfig" and so on.
 	    See https://wiki.gentoo.org/wiki/Kernel/Configuration
 	    for more information.
@@ -200,21 +200,21 @@ CHANGELOG
 
 	LEGEND: [+] Add, [-] Remove, [*] Change, [!] Bugfix
 
-	v0.5 (20170715)	[+] Initial release
-	v0.6 (20170715)	[!] Missed unset variable
+	v0.5 (20170715)		[+] Initial release
+	v0.6 (20170715)		[!] Missed unset variable
 				[!] Accidentally unset a variable too early
 				[*] Removed unnecessary duplicate code
 				[*] Minor code cleanup
-	v0.7 (20170715)	[*] Moved variable to a more logical place
+	v0.7 (20170715)		[*] Moved variable to a more logical place
 				[-] Removed variable pointer and left over
 				    eval from an earlier idea
 				[+] Added more comments
-	v0.8 (20170716)	[+] Added option for make.conf make optimization
+	v0.8 (20170716)		[+] Added option for make.conf make optimization
 				    override
 				[*] Renamed some variables and a function for
 				    clarity
 				[*] Changed an unnecessary array to a variable
-	v0.9 (20170717)	[+] Added arch setting to define architecture
+	v0.9 (20170717)		[+] Added arch setting to define architecture
 				    type in name
 				[!] Wrong var used in an error expression
 				[*] Minor code cleanup
@@ -267,6 +267,11 @@ CHANGELOG
 				[*] Moved dracut check to where it makes more
 				    sense
 				[*] Removed reduntant part of regex
+	v0.17 (20171107)	[!] Lexicographical comparison bug should now
+				    work properly. Sorry for that
+				[!] Fixed small bug that added the /usr/src/linux
+				    symlink to array when it should not be there
+				[*] Added new addzero() function
 
 TODO
 
