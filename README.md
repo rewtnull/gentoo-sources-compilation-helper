@@ -268,7 +268,7 @@ CHANGELOG
 				    sense
 				[*] Removed reduntant part of regex
 	v0.17 (20171107)	[!] Lexicographical comparison bug should now
-				    work properly. Sorry for that
+				    be properly fixed. Sorry for that
 				[!] Fixed small bug that added the /usr/src/linux
 				    symlink to array when it should not be there
 				[*] Added new addzero() function
