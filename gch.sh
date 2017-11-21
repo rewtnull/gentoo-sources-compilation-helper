@@ -11,10 +11,10 @@
 ### <source_functions>
 
 . func/error.sh 2>/dev/null || { echo -e "\n\e[91m*\e[0m error.sh not found" 1>&2; exit 1; } # error handler
-. func/gtoe.sh 2>/dev/null || error "gtoe.sh not found" # lexicographic greater than or equal
+. func/gtoe.sh 2>/dev/null || error "gtoe.sh not found" # lexicographical greater than or equal
 . func/usage.sh 2>/dev/null || error "usage.sh not found"
 . func/except.sh 2>/dev/null || error "except.sh not found" # exception handler
-. func/addzero.sh 2>/dev/null || error "addzero.sh not found" # under some conditions, adds a 0 to version string
+. func/addzero.sh 2>/dev/null || error "addzero.sh not found" # adds a 0 to version string under a condition
 . func/missing.sh 2>/dev/null || error "missing.sh not found" # missing dependency handler
 . func/version.sh 2>/dev/null || error "version.sh not found"
 . func/largest.sh 2>/dev/null || error "largest.sh not found" # return largest element from array
@@ -25,7 +25,10 @@
 ### <sanity_check>
 
 [[ $(whoami) != "root" ]] && error "You must be root to run this script"
-[[ "${BASH_VERSION}" < 4.4 ]] && error "${0##*/} requires \033[1mbash v4.4\033[m or newer"
+
+if [[ ${BASH_VERSINFO[0]} -lt "4" ]] || [[ ${BASH_VERSINFO[0]} -eq "4" && ${BASH_VERSINFO[1]} -lt "4" ]]; then
+    error "${0##*/} requires \033[1mbash v4.4\033[m or newer"
+fi
 
 if [[ -e gch.conf ]]; then
     . gch.conf
@@ -37,17 +40,18 @@ missing "perl" "dev-lang/perl" # "look for" "required package"
 missing "zcat" "app-arch/gzip"
 missing "find" "sys-apps/findutils"
 missing "uname" "sys-apps/coreutils"
-missing "getopt" "sys-apps/util-linux"
 missing "grub-mkconfig" "sys-boot/grub"
+
+[[ $(getopt -V) =~ util-linux ]] || error "getopt is missing or is the wrong version. Install \033[1msys-apps/util-linux\033[m"
 
 ### </sanity_check>
 
-{ scriptdir="$(cd $(dirname "${BASH_SOURCE[0]}"); pwd)"; except "Could not cd to script directory"; } # save script directory
+{ scriptdir="$(cd "$(dirname "${BASH_SOURCE[0]}")"; pwd)"; except "Could not cd to script directory"; } # save script directory
 
 ### <populate_array_with_kernel_versions>
 
 kerndirs=(${kernelroot}/linux-*); kerndirs=("${kerndirs[@]##*/}") # basename
-kernhigh="$(largest "${kerndirs[@]}")" # return largest element from array
+kernhigh=$(largest "${kerndirs[@]}") # return largest element from array
 
 ### </populate_array_with_kernel_versions>
 
@@ -91,10 +95,10 @@ done; unset OPTS
 
 re="^(linux-)[0-9]{1,2}\.[0-9]{1,2}\.[0-9]{1,2}(-gentoo)(-r[0-9]([0-9])?)?$"
 
-if [[ "${kernhigh}" =~ ${re} ]]; then # check if input format is valid
-    if [[ "${trigger}" == "1" ]]; then # --kernel option set
+if [[ ${kernhigh} =~ ${re} ]]; then # check if input format is valid
+    if [[ ${trigger} == "1" ]]; then # --kernel option set
 	for (( i = 0; i < ${#kerndirs[@]}; i++ )); do
-	    [[ "${kerndirs[${i}]}" == "${kernhigh}" ]] && { current="${kernhigh}"; break; } # check if version exists
+	    [[ ${kerndirs[${i}]} == "${kernhigh}" ]] && { current="${kernhigh}"; break; } # check if version exists
 	done
     elif [[ ${1} == "" ]]; then
 	current="${kernhigh}" # if run without argument, make highest version current
@@ -113,7 +117,7 @@ fi; unset re kerndirs kernhigh trigger
 if [[ ${current} =~ ^linux-$(uname -r)$ ]]; then
     yestoall "Kernel ${current} currently in use. Do you want to reinstall it? [y/N]"
 
-    [[ "${REPLY}" != "y" ]] && { echo -e "\nSee ya!\n"; exit 0; }
+    [[ ${REPLY} != "y" ]] && { echo -e "\nSee ya!\n"; exit 0; }
 fi
 
 ### </kernel_reinstall_check>
@@ -123,8 +127,9 @@ fi
 if [[ $(find ${bootmount} -maxdepth 0 -empty) ]]; then # check if directory is empty
     yestoall "${bootmount} is empty. Do you want to try to mount it? [y/N]"
 
-    if [[ "${REPLY}" == "y" ]]; then
-	[[ $(grep -o ${bootmount} ${fstab}) == "" ]] && error "${bootmount} missing from ${fstab}"
+    if [[ ${REPLY} == "y" ]]; then
+#	[[ $(grep -o ${bootmount} ${fstab}) == "" ]] && error "${bootmount} missing from ${fstab}"
+	grep -o ${bootmount} ${fstab} >/dev/null || error "${bootmount} missing from ${fstab}"
 	echo -e ">>> Mounting ${bootmount}"
 	{ mount "${bootmount}" 2>/dev/null; except "Could not mount ${bootmount}"; }
     else
@@ -139,7 +144,7 @@ echo -e "\n\e[92m*\e[0m Processing kernel: \033[1m${current}\033[m\n"
 ### <symbolic_link_handling>
 
 if [[ -L ${kernelroot}/linux ]]; then
-    if [[ ! "${kernelroot}/linux" -ef "${kernelroot}/${current}" ]]; then # remove symlink if it's doesn't point to the right kernel
+    if [[ ! ${kernelroot}/linux -ef "${kernelroot}/${current}" ]]; then # remove symlink if it's doesn't point to the right kernel
 	{ rm ${kernelroot}/linux 2>/dev/null; except "Could not remove symbolic link ${kernelroot}/linux"; }
     fi
 fi
@@ -156,7 +161,7 @@ fi
 if [[ ! -f ${kernelroot}/linux/.config ]]; then
 	yestoall "${kernelroot}/linux/.config not present. Reuse current .config from /proc/config.gz? [y/N]"
 
-	if [[ "${REPLY}" == "y" ]]; then
+	if [[ ${REPLY} == "y" ]]; then
 	    if [[ -e /proc/config.gz ]]; then
 		echo -e "\n>>> Deflating \033[1m/proc/config.gz\033[m to \033[1m${kernelroot}/linux/.config\033[m\n"
 		{ zcat /proc/config.gz > "${kernelroot}/linux/.config" 2>/dev/null; \
@@ -177,7 +182,7 @@ fi
 
 cd "${kernelroot}/linux" 2>/dev/null || error "Could not cd ${kernelroot}/linux"; unset kernelroot
 
-{ make ${makeconf}; except "make ${makeconf} failed"; }; unset makeconf
+{ make "${makeconf}"; except "make ${makeconf} failed"; }; unset makeconf
 
 ### </config_handling>
 
@@ -185,11 +190,11 @@ cd "${kernelroot}/linux" 2>/dev/null || error "Could not cd ${kernelroot}/linux"
 
 yestoall "Init complete. Do you want to compile kernel now? [y/N]"
 
-if [[ "${REPLY}" == "y" ]]; then
+if [[ ${REPLY} == "y" ]]; then
     echo ""
-    { make ${makeopt} ${makearg}; except "make ${makeopt} ${makearg} failed"; }
+    { make ${makeopt} ${makearg}; except "make ${makeopt} ${makearg} failed"; } # unqouted because we want word splitting here
 else
-    echo -e "\nSee Ya!\n"; exit 0
+    echo -e "\nSee Ya!\n"; umount ${bootmount}; exit 0
 fi; unset makeopt makearg
 
 ### </compilation_handling>
@@ -220,7 +225,7 @@ done; unset re filename s
 if [[ ${dracut} == "1" ]]; then
     yestoall "Do you want to generate initramfs? [y/N]"
 
-    if [[ "${REPLY}" == "y" ]]; then
+    if [[ ${REPLY} == "y" ]]; then
 	echo -e ">>> Generating \033[1m${bootmount}/initramfs-${current:6}\033[m\n"
 	{ dracut ${dracutopt} --force --kver "${current:6}"; except "dracut - Generating initramfs-${current:6} failed"; }
     else

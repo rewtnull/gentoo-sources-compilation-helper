@@ -4,7 +4,7 @@ NAME
 
 VERSION
 
-	0.17
+	0.18
 
 SYNOPSIS:
 
@@ -200,21 +200,21 @@ CHANGELOG
 
 	LEGEND: [+] Add, [-] Remove, [*] Change, [!] Bugfix
 
-	v0.5 (20170715)	[+] Initial release
-	v0.6 (20170715)	[!] Missed unset variable
+	v0.5 (20170715)		[+] Initial release
+	v0.6 (20170715)		[!] Missed unset variable
 				[!] Accidentally unset a variable too early
 				[*] Removed unnecessary duplicate code
 				[*] Minor code cleanup
-	v0.7 (20170715)	[*] Moved variable to a more logical place
+	v0.7 (20170715)		[*] Moved variable to a more logical place
 				[-] Removed variable pointer and left over
 				    eval from an earlier idea
 				[+] Added more comments
-	v0.8 (20170716)	[+] Added option for make.conf make optimization
+	v0.8 (20170716)		[+] Added option for make.conf make optimization
 				    override
 				[*] Renamed some variables and a function for
 				    clarity
 				[*] Changed an unnecessary array to a variable
-	v0.9 (20170717)	[+] Added arch setting to define architecture
+	v0.9 (20170717)		[+] Added arch setting to define architecture
 				    type in name
 				[!] Wrong var used in an error expression
 				[*] Minor code cleanup
@@ -268,10 +268,15 @@ CHANGELOG
 				    sense
 				[*] Removed reduntant part of regex
 	v0.17 (20171107)	[!] Lexicographical comparison bug should now
-				    be properly fixed. Sorry for that
+				    work properly. Sorry for that
 				[!] Fixed small bug that added the /usr/src/linux
 				    symlink to array when it should not be there
 				[*] Added new addzero() function
+	v0.18 (20171121)	[!] Fixed some bugs with sanity checks
+				[*] Code cleanup
+				[*] Squashed some shellsheck warnings
+				[*] Now unmounts /boot upon exit if choosing to
+				    not compile kernel
 
 TODO
 
