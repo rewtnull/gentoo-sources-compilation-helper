@@ -2,6 +2,6 @@
 except() {
     local pstatus=("${PIPESTATUS[@]}") i
     for (( i = 0; i < ${#pstatus[@]}; i++ )); do
-	[[ ${pstatus[${i}]} -gt 0 ]] && { echo -e "\n\e[91m*\e[0m ${1} - Return Code: ${pstatus[${i}]}\n"; exit; }
+	[[ ${pstatus[${i}]} -gt 0 ]] && { echo -e "\n${redfg}*${off} ${1} - Return Code: ${pstatus[${i}]}\n"; exit; }
     done
 }
