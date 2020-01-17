@@ -4,7 +4,7 @@ NAME
 
 VERSION
 
-	0.18
+	0.20
 
 SYNOPSIS:
 
@@ -49,7 +49,7 @@ ARGUMENTS
 
 	-k, --kernel <kernel>		Kernel version in format:
 					linux-<version>-gentoo[<-r<1-9>>]
-	-i, --initramfs		Generate initramfs
+	-i, --initramfs			Generate initramfs
 	-y, --yestoall			Automatically answer yes to all questions
 
 	No arguments, --kernel option, optionally --yestoall and/or --initramfs
@@ -121,7 +121,7 @@ CONFIGURATION
 
 	makeconf
 
-	    make kernel configutation option This could be "oldconfig",
+	    make kernel configuration option This could be "oldconfig",
 	    "xconfig", "menuconfig" and so on.
 	    See https://wiki.gentoo.org/wiki/Kernel/Configuration
 	    for more information.
@@ -190,7 +190,7 @@ REPORTING BUGS
 
 COPYRIGHT
 
-	Copyright Â© 2017 Marcus Hoffren. License GPLv3+:
+	Copyright © 2019 Marcus Hoffren. License GPLv3+:
 	GNU GPL version 3 or later - http://gnu.org/licenses/gpl.html
 
 	This is free software: you are free to change and redistribute it.
@@ -200,21 +200,21 @@ CHANGELOG
 
 	LEGEND: [+] Add, [-] Remove, [*] Change, [!] Bugfix
 
-	v0.5 (20170715)	[+] Initial release
-	v0.6 (20170715)	[!] Missed unset variable
+	v0.5 (20170715)		[+] Initial release
+	v0.6 (20170715)		[!] Missed unset variable
 				[!] Accidentally unset a variable too early
 				[*] Removed unnecessary duplicate code
 				[*] Minor code cleanup
-	v0.7 (20170715)	[*] Moved variable to a more logical place
+	v0.7 (20170715)		[*] Moved variable to a more logical place
 				[-] Removed variable pointer and left over
 				    eval from an earlier idea
 				[+] Added more comments
-	v0.8 (20170716)	[+] Added option for make.conf make optimization
+	v0.8 (20170716)		[+] Added option for make.conf make optimization
 				    override
 				[*] Renamed some variables and a function for
 				    clarity
 				[*] Changed an unnecessary array to a variable
-	v0.9 (20170717)	[+] Added arch setting to define architecture
+	v0.9 (20170717)		[+] Added arch setting to define architecture
 				    type in name
 				[!] Wrong var used in an error expression
 				[*] Minor code cleanup
@@ -277,6 +277,11 @@ CHANGELOG
 				[*] Squashed some shellsheck warnings
 				[*] Now unmounts /boot upon exit if choosing to
 				    not compile kernel
+	v0.19 (20171122)	[*] Now using tput instead of hardcoded terminal
+				    sequences for output
+				[!] Fixed silly little bug in bash version check
+	v0.20 (20190128)	[!] Came Bash v5 and guess what. Yes, bash version
+				    check was apparently still broken :[
 
 TODO
 
